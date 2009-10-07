@@ -25,11 +25,11 @@ namespace LinqToExcel
         /// Executes the query based upon the Linq statement against the Excel worksheet
         /// </summary>
         /// <param name="expression">Expression created from the Linq statement</param>
+        /// <param name="dataType">Type of the data.</param>
         /// <param name="fileName">File path to the Excel workbook</param>
-        /// <param name="columnMapping">
-        /// Property to column mapping. 
-        /// Properties are the dictionary keys and the dictionary values are the corresponding column names.
-        /// </param>
+        /// <param name="fileType">Type of the file.</param>
+        /// <param name="columnMapping">Property to column mapping.
+        /// Properties are the dictionary keys and the dictionary values are the corresponding column names.</param>
         /// <param name="worksheetName">Name of the Excel worksheet</param>
         /// <returns>Returns the results from the query</returns>
         public object ExecuteQuery(Expression expression, Type dataType, string fileName, ExcelVersion fileType, Dictionary<string, string> columnMapping, string worksheetName)

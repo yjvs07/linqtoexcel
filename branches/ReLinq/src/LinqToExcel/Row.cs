@@ -9,6 +9,10 @@ namespace LinqToExcel
     {
         IDictionary<string, int> _columnIndexMapping;
 
+        public Row() : 
+            this(new List<Cell>(),new Dictionary<string, int>())
+        { }
+
         /// <param name="cells">Cells contained within the row</param>
         /// <param name="columnIndexMapping">Column name to cell index mapping</param>
         public Row(IList<Cell> cells, IDictionary<string, int> columnIndexMapping)

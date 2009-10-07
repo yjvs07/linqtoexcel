@@ -10,9 +10,9 @@ namespace LinqToExcel.Tests
     [Author("Paul Yoder", "paulyoder@gmail.com")]
     [FixtureCategory("Integration")]
     [TestFixture]
-    public class ConfiguredWorksheetName_IntegrationTests
+    public class Row_IntegrationTests
     {
-        private string _excelFileName;
+        string _excelFileName;
 
         [TestFixtureSetUp]
         public void fs()
@@ -23,12 +23,15 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
-        public void data_is_read_from_correct_worksheet()
+        public void column_values()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName, "More Companies")
-                            select c;
+            var firstCompany = (from c in ExcelQueryFactory.Worksheet(_excelFileName)
+                                select c).First();
 
-            Assert.AreEqual(3, companies.ToList().Count);
+            Assert.AreEqual("ACME", firstCompany["Name"].ToString());
+            Assert.AreEqual("Bugs Bunny", firstCompany["CEO"].ToString());
+            Assert.AreEqual(25, firstCompany["EmployeeCount"].As<int>());
+            Assert.AreEqual(new DateTime(1918, 11, 11).Date, firstCompany["StartDate"].As<DateTime>().Date);
         }
     }
 }

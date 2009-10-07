@@ -38,6 +38,18 @@
       <HintPath>..\..\lib\Log4Net\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.DebuggerVisualizers, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Remotion, Version=1.13.18.2, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\Remotion\Remotion.dll</HintPath>
+    </Reference>
+    <Reference Include="Remotion.Data.Linq, Version=1.13.18.2, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\Remotion\Remotion.Data.Linq.dll</HintPath>
+    </Reference>
+    <Reference Include="Remotion.Interfaces, Version=1.13.18.2, Culture=neutral, PublicKeyToken=fee00910d6e5f53b, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\Remotion\Remotion.Interfaces.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -54,6 +66,9 @@
   <ItemGroup>
     <Compile Include="Cell.cs" />
     <Compile Include="ExcelOLEDB.cs" />
+    <Compile Include="ExcelQueryable.cs" />
+    <Compile Include="ExcelQueryExecutor.cs" />
+    <Compile Include="ExcelQueryFactory.cs" />
     <Compile Include="ExcelQueryProvider.cs" />
     <Compile Include="ExcelRepository.cs">
       <SubType>Code</SubType>
@@ -69,6 +84,9 @@
     <Compile Include="ObjectExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryableExcelSheet.cs" />
+    <Compile Include="Query\WhereClauseExpressionTreeVisitor.cs" />
+    <Compile Include="Query\SqlGeneratorQueryModelVisitor.cs" />
+    <Compile Include="Query\SqlParts.cs" />
     <Compile Include="ReflectionExtensions.cs" />
     <Compile Include="Row.cs" />
     <Compile Include="SQLExpressionVisitor.cs" />

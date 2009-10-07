@@ -13,7 +13,7 @@ namespace LinqToExcel.Tests
     [TestFixture]
     public class ColumnMappings_SQLStatements_UnitTests : SQLLogStatements_Helper
     {
-        IExcelRepository<Company> _repo;
+        private ExcelQueryFactory _repo;
 
         [TestFixtureSetUp]
         public void fs()
@@ -24,16 +24,17 @@ namespace LinqToExcel.Tests
         [SetUp]
         public void Setup()
         {
-            _repo = new ExcelRepository<Company>();
+            _repo = new ExcelQueryFactory();
+            _repo.FileName = "";
             ClearLogEvents();
         }
 
         [Test]
         public void where_clause_contains_property_with_column_mapping()
         {
-            _repo.AddMapping(x => x.CEO, "Boss");
+            _repo.AddMapping<Company>(x => x.CEO, "Boss");
 
-            var companies = from c in _repo.Worksheet()
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.CEO == "Paul"
                             select c;
 
@@ -46,9 +47,9 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_clause_contains_property_without_column_mapping()
         {
-            _repo.AddMapping(x => x.CEO, "Boss");
+            _repo.AddMapping<Company>(x => x.CEO, "Boss");
 
-            var companies = from c in _repo.Worksheet()
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.Name == "ACME"
                             select c;
 
@@ -64,9 +65,9 @@ namespace LinqToExcel.Tests
         [Test]
         public void mapped_property_is_not_native_type()
         {
-            _repo.AddMapping(x => x.StartDate, "Hired Date");
+            _repo.AddMapping<Company>(x => x.StartDate, "Hired Date");
 
-            var companies = from c in _repo.Worksheet()
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.StartDate == new DateTime(2008, 1, 1)
                             select c;
 
@@ -82,15 +83,33 @@ namespace LinqToExcel.Tests
         [Test]
         public void mapped_property_is_native_type()
         {
-            _repo.AddMapping(x => x.CEO, "Da big Cheese");
+            _repo.AddMapping<Company>(x => x.CEO, "Da big Cheese");
 
-            var companies = from c in _repo.Worksheet()
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.CEO == "Paul"
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             string expectedSql = string.Format("SELECT * FROM [Sheet1$] WHERE ({0} = ?)", GetSQLFieldName("Da big Cheese"));
+            Assert.AreEqual(expectedSql, GetSQLStatement());
+        }
+
+        [Test]
+        public void multiple_mapped_properties()
+        {
+            _repo.AddMapping<Company>(x => x.CEO, "Da big Cheese");
+            _repo.AddMapping<Company>(x => x.Name, "Legal Name");
+
+            var companies = from c in _repo.Worksheet<Company>()
+                            where c.CEO == "Paul" && c.Name == "ACME"
+                            select c;
+
+            try { companies.GetEnumerator(); }
+            catch (OleDbException) { }
+            string expectedSql = string.Format("SELECT * FROM [Sheet1$] WHERE (({0} = ?) AND ({1} = ?))",
+               GetSQLFieldName("Da big Cheese"),
+               GetSQLFieldName("Legal Name"));
             Assert.AreEqual(expectedSql, GetSQLStatement());
         }
     }

@@ -27,8 +27,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void table_name_in_sql_statement_matches_configured_table_name()
         {
-            IExcelRepository<Company> repo = new ExcelRepository<Company>();
-            var companies = from c in repo.Worksheet("Company Worksheet")
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("", "Company Worksheet")
                             select c;
 
             try { companies.GetEnumerator(); }

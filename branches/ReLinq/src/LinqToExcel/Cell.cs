@@ -25,7 +25,7 @@ namespace LinqToExcel
         /// Cell's value converted as the generic argument type
         /// </summary>
         /// <typeparam name="T">Object type to convert to</typeparam>
-        public T ValueAs<T>()
+        public T As<T>()
         {
             return (Value == null || Value is DBNull) ?
                 default(T) :
@@ -38,6 +38,14 @@ namespace LinqToExcel
         public override string ToString()
         {
             return Value.ToString();
+        }
+
+        /// <summary>
+        /// Allow cell to be implicitly cast to a string
+        /// </summary>
+        public static implicit operator string(Cell cell)
+        {
+            return cell.ToString();
         }
     }
 }

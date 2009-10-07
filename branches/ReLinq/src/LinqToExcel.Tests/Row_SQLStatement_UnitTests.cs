@@ -12,12 +12,9 @@ namespace LinqToExcel.Tests
     [TestFixture]
     public class Row_SQLStatement_UnitTests : SQLLogStatements_Helper
     {
-        IExcelRepository _repo;
-
         [TestFixtureSetUp]
         public void fs()
         {
-            _repo = new ExcelRepository();
             InstantiateLogger();
         }
 
@@ -30,7 +27,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void no_where_clause()
         {
-            var companies = from c in _repo.Worksheet()
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
                             select c;
 
             try { companies.GetEnumerator(); }
@@ -41,25 +38,39 @@ namespace LinqToExcel.Tests
         [Test]
         public void column_name_used_in_where_clause()
         {
-            var companies = from c in _repo.Worksheet()
-                            where c["City"].ToString() == "Omaha"
+            var companies = from c in ExcelQueryFactory.Worksheet("")
+                            where c["City"] == "Omaha"
                             select c;
-
+            
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
-            string expectedSql = string.Format("SELECT * FROM [Sheet1$] WHERE ({0} = ?)", GetSQLFieldName("City"));
+            var expectedSql = string.Format("SELECT * FROM [Sheet1$] WHERE ({0} = ?)", GetSQLFieldName("City"));
             Assert.AreEqual(expectedSql, GetSQLStatement());
             Assert.AreEqual("Omaha", GetSQLParameters()[0]);
+        }
+
+        [Test]
+        public void column_name_is_cast_in_where_clause()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet("")
+                            where c["Modified"].As<DateTime>() < DateTime.Now
+                            select c;
+            
+            try { companies.GetEnumerator(); }
+            catch (OleDbException) { }
+            var expectedSql = string.Format("SELECT * FROM [Sheet1$] WHERE ({0} < ?)", GetSQLFieldName("Modified"));
+            Assert.AreEqual(expectedSql, GetSQLStatement());
+            Assert.AreEqual(DateTime.Now.ToShortDateString(), GetSQLParameters()[0]);
         }
 
         [Test]
         [ExpectedArgumentException("Cannot use column indexes in where clause")]
         public void argument_thrown_when_column_indexes_used_in_where_clause()
         {
-            var companies = from c in _repo.Worksheet()
-                            where c[0].ToString() == "Omaha"
+            var companies = from c in ExcelQueryFactory.Worksheet("")
+                            where c[0] == "Omaha"
                             select c;
-
+            
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
         }

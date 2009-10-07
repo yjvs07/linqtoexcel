@@ -28,26 +28,36 @@ namespace LinqToExcel.Prototype
         {
             //This is used for debugging purposes while building the LinqToExcel library
 
-            string fileName = @"C:\Users\paul.yoder\Desktop\test.xls";
-            IExcelRepository repo = new ExcelRepository(fileName);
-            var people = from row in repo.Worksheet()
-                         where row["FirstName"].ToString() == "Paul"
-                         select row;
-            people.GetEnumerator();
+            var fileName = @"C:\Working\test.xls";
+            //IExcelRepository repo = new ExcelRepository(fileName);
+            //var people = from row in repo.Worksheet()
+            //             where row["FirstName"].ToString() == "Paul"
+            //             select row;
+            //people.GetEnumerator();
+
+            var people = from p in ExcelQueryFactory.Worksheet<Person>(fileName)
+                         where p.BirthDate == new DateTime(1983,5,5)
+                         select p;
+            //people.ToList();
 
             //IExcelRepository rep = new ExcelRepository(fileName);
             //var people = from p in rep.Worksheet
-            //             where p["Age"].ValueAs<int>() > 25
+            //             where p["Age"].As<int>() > 25
             //             select p;
 
 
-            //StringBuilder sb = new StringBuilder();
-            //foreach (var p in people)
-            //{
-            //    sb.AppendFormat("{0} {1}", p.FirstName, p.LastName);
-            //    sb.AppendLine();
-            //}
-            //textBox1.Text = sb.ToString();
+            StringBuilder sb = new StringBuilder();
+            foreach (var p in people)
+            {
+                sb.AppendFormat("{0} {1}", p.FirstName, p.LastName);
+                sb.AppendLine();
+            }
+            textBox1.Text = sb.ToString();
+        }
+
+        private int GetNumber()
+        {
+            return 25;
         }
     }
 }

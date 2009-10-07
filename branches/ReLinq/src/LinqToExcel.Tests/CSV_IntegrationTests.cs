@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,27 +12,20 @@ namespace LinqToExcel.Tests
     [TestFixture]
     public class CSV_IntegrationTests
     {
-        IExcelRepository _repo;
         string _fileName;
 
         [TestFixtureSetUp]
         public void fs()
         {
-            string testDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string excelFilesDirectory = Path.Combine(testDirectory, "ExcelFiles");
+            var testDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var excelFilesDirectory = Path.Combine(testDirectory, "ExcelFiles");
             _fileName = Path.Combine(excelFilesDirectory, "Companies.csv");
-        }
-
-        [SetUp]
-        public void s()
-        {
-            _repo = new ExcelRepository(_fileName);
         }
 
         [Test]
         public void select_all()
         {
-            var companies = from c in _repo.Worksheet()
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_fileName)
                             select c;
 
             Assert.AreEqual(7, companies.ToList().Count);
@@ -41,8 +34,8 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_contains_string_criteria()
         {
-            var companies = from c in _repo.Worksheet()
-                            where c["Name"].ValueAs<string>() == "ACME"
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_fileName)
+                            where c.Name == "ACME"
                             select c;
 
             Assert.AreEqual(1, companies.ToList().Count);
@@ -51,8 +44,8 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_contains_int_criteria()
         {
-            var companies = from c in _repo.Worksheet()
-                            where c["EmployeeCount"].ValueAs<int>() > 20
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_fileName)
+                            where c.EmployeeCount > 20
                             select c;
 
             Assert.AreEqual(5, companies.ToList().Count);
@@ -61,8 +54,8 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_contains_datetime_criteria()
         {
-            var companies = from c in _repo.Worksheet()
-                            where c["StartDate"].ValueAs<DateTime>() == new DateTime(1980, 8, 23)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_fileName)
+                            where c.StartDate == new DateTime(1980, 8, 23)
                             select c;
 
             Assert.AreEqual(1, companies.ToList().Count);

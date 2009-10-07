@@ -15,7 +15,7 @@ namespace LinqToExcel.Tests
     [TestFixture]
     public class ColumnMappings_IntegrationTests : SQLLogStatements_Helper
     {
-        IExcelRepository<Company> _repo;
+        ExcelQueryFactory _repo;
         string _excelFileName;
         string _worksheetName;
 
@@ -23,8 +23,8 @@ namespace LinqToExcel.Tests
         public void fs()
         {
             InstantiateLogger();
-            string testDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string excelFilesDirectory = Path.Combine(testDirectory, "ExcelFiles");
+            var testDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var excelFilesDirectory = Path.Combine(testDirectory, "ExcelFiles");
             _excelFileName = Path.Combine(excelFilesDirectory, "Companies.xls");
             _worksheetName = "ColumnMappings";
         }
@@ -32,22 +32,24 @@ namespace LinqToExcel.Tests
         [SetUp]
         public void s()
         {
-            _repo = new ExcelRepository<Company>(_excelFileName);
+            _repo = new ExcelQueryFactory();
+            _repo.WorksheetName = _worksheetName;
+            _repo.FileName = _excelFileName;
         }
 
         [Test]
         public void all_properties_have_column_mappings()
         {
-            _repo.AddMapping(x => x.Name, "Company Title");
-            _repo.AddMapping(x => x.CEO, "Boss");
-            _repo.AddMapping(x => x.EmployeeCount, "Number of People");
-            _repo.AddMapping(x => x.StartDate, "Initiation Date");
+            _repo.AddMapping<Company>(x => x.Name, "Company Title");
+            _repo.AddMapping<Company>(x => x.CEO, "Boss");
+            _repo.AddMapping<Company>(x => x.EmployeeCount, "Number of People");
+            _repo.AddMapping<Company>(x => x.StartDate, "Initiation Date");
 
-            var companies = from c in _repo.Worksheet(_worksheetName)
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.Name == "Taylor University"
                             select c;
 
-            Company rival = companies.ToList()[0];
+            var rival = companies.ToList().First();
             Assert.AreEqual(1, companies.ToList().Count, "Result Count");
             Assert.AreEqual("Taylor University", rival.Name, "Name");
             Assert.AreEqual("Your Mom", rival.CEO, "CEO");
@@ -58,10 +60,10 @@ namespace LinqToExcel.Tests
         [Test]
         public void some_properties_have_column_mappings()
         {
-            _repo.AddMapping(x => x.CEO, "Boss");
-            _repo.AddMapping(x => x.StartDate, "Initiation Date");
+            _repo.AddMapping<Company>(x => x.CEO, "Boss");
+            _repo.AddMapping<Company>(x => x.StartDate, "Initiation Date");
 
-            var companies = from c in _repo.Worksheet(_worksheetName)
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.Name == "Anderson University"
                             select c;
 
@@ -81,9 +83,9 @@ namespace LinqToExcel.Tests
         [Test]
         public void exception_on_property_with_column_mapping_used_in_where_clause_when_mapped_column_doesnt_exist()
         {
-            _repo.AddMapping(x => x.CEO, "The Big Cheese");
+            _repo.AddMapping<Company>(x => x.CEO, "The Big Cheese");
 
-            var companies = from c in _repo.Worksheet(_worksheetName)
+            var companies = from c in _repo.Worksheet<Company>()
                             where c.CEO == "Bugs Bunny"
                             select c;
 
@@ -94,9 +96,9 @@ namespace LinqToExcel.Tests
         public void log_warning_when_property_with_column_mapping_not_in_where_clause_when_mapped_column_doesnt_exist()
         {
             _loggedEvents.Clear();
-            _repo.AddMapping(x => x.CEO, "The Big Cheese");
+            _repo.AddMapping<Company>(x => x.CEO, "The Big Cheese");
 
-            var companies = from c in _repo.Worksheet(_worksheetName)
+            var companies = from c in _repo.Worksheet<Company>()
                             select c;
 
             companies.GetEnumerator();
@@ -104,7 +106,7 @@ namespace LinqToExcel.Tests
             foreach (LoggingEvent logEvent in _loggedEvents.GetEvents())
             {
                 if ((logEvent.Level == Level.Warn) &&
-                    (logEvent.RenderedMessage == "'The Big Cheese' column that is mapped to the 'CEO' property does not exist in the 'Sheet1' worksheet"))
+                    (logEvent.RenderedMessage == "'The Big Cheese' column that is mapped to the 'CEO' property does not exist in the 'ColumnMappings' worksheet"))
                     warningsLogged++;
             }
             Assert.AreEqual(1, warningsLogged);
