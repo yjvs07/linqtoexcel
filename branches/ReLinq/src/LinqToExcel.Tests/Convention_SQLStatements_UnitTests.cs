@@ -202,5 +202,38 @@ namespace LinqToExcel.Tests
             catch (OleDbException) { }
             Assert.AreEqual("SELECT TOP 1 * FROM [Sheet1$]", GetSQLStatement());
         }
+
+        [Test]
+        public void count()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.Count(); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT COUNT(*) FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
+        public void sum()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.Sum(x => x.EmployeeCount); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT SUM(EmployeeCount) FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
+        public void average()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.Average(x => x.EmployeeCount); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT AVG(EmployeeCount) FROM [Sheet1$]", GetSQLStatement());
+        }
     }
 }

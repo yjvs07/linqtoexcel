@@ -59,10 +59,53 @@ namespace LinqToExcel.Query
 
         public override void VisitResultOperator(ResultOperatorBase resultOperator, QueryModel queryModel, int index)
         {
-            if (resultOperator is CountResultOperator)
+            if (resultOperator is AverageResultOperator)
+            {
+                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+                {
+                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
+                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name))
+                                         ?
+                                             _columnMappings[mExp.Member.Name]
+                                         :
+                                             mExp.Member.Name;
+                    _aggregate = string.Format("AVG({0})", columnName);
+                }
+            }
+            else if (resultOperator is CastResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is ContainsResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is CountResultOperator)
                 _aggregate = "COUNT(*)";
+            else if (resultOperator is DefaultIfEmptyResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is DistinctResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is ExceptResultOperator)
+                throw new NotImplementedException();
             else if (resultOperator is FirstResultOperator)
                 _aggregate = "TOP 1 *";
+            else if (resultOperator is GroupResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is IntersectResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is LastResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is LongCountResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is MaxResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is MinResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is OfTypeResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is ReverseResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is SingleResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is SkipResultOperator)
+                throw new NotImplementedException();
             else if (resultOperator is SumResultOperator)
             {
                 if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
@@ -75,6 +118,10 @@ namespace LinqToExcel.Query
                 }
 
             }
+            else if (resultOperator is TakeResultOperator)
+                throw new NotImplementedException();
+            else if (resultOperator is UnionResultOperator)
+                throw new NotImplementedException();
             base.VisitResultOperator(resultOperator, queryModel, index);
         }
 

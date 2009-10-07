@@ -169,5 +169,14 @@ namespace LinqToExcel.Tests
 
             Assert.AreEqual("ACME", firstCompany.Name);
         }
+
+        [Test]
+        public void average()
+        {
+            var averageEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                    select c).Average(x => x.EmployeeCount);
+
+            Assert.AreEqual(4389, averageEmployees);
+        }
     }
 }
