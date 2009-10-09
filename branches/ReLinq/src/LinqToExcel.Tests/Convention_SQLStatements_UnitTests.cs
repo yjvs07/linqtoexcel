@@ -235,5 +235,51 @@ namespace LinqToExcel.Tests
             catch (OleDbException) { }
             Assert.AreEqual("SELECT AVG(EmployeeCount) FROM [Sheet1$]", GetSQLStatement());
         }
+
+        [Test]
+        public void max()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.Max(x => x.EmployeeCount); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT MAX(EmployeeCount) FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
+        public void min()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.Min(x => x.EmployeeCount); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT MIN(EmployeeCount) FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
+        public void orderby()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.OrderBy(x => x.StartDate); }
+            catch (OleDbException) { }
+            var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} Asc", GetSQLFieldName("StartDate"));
+            Assert.AreEqual(expectedSql, GetSQLStatement());
+        }
+
+        [Test]
+        public void orderby_desc()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.OrderByDescending(x => x.StartDate); }
+            catch (OleDbException) { }
+            var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} Desc", GetSQLFieldName("StartDate"));
+            Assert.AreEqual(expectedSql, GetSQLStatement());
+        }
     }
 }

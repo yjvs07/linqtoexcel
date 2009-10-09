@@ -57,9 +57,6 @@ namespace LinqToExcel
             LogSqlStatement(sql.GetSqlString(), sql.SqlParams);
 
             IEnumerable<T> results;
-            //var results = (T)Activator
-            //    .CreateInstance(typeof(List<>)
-            //    .MakeGenericType(queryModel.GetResultType()));
 
             using (var conn = new OleDbConnection(connString))
             using (var command = conn.CreateCommand())
@@ -132,14 +129,22 @@ namespace LinqToExcel
             var props = queryModel.MainFromClause.ItemType.GetProperties();
             while (data.Read())
             {
-                var result = (T)Activator.CreateInstance(queryModel.MainFromClause.ItemType);
-                foreach (var prop in props)
+                var result = Activator.CreateInstance<T>();
+                if (queryModel.ResultOperators.Count == 0 ||
+                    queryModel.MainFromClause.ItemType == typeof(T))
                 {
-                    var columnName = (_columnMappings.ContainsKey(prop.Name)) ?
-                        _columnMappings[prop.Name] :
-                        prop.Name;
-                    if (columns.Contains(columnName))
-                        result.SetProperty(prop.Name, Convert.ChangeType(data[columnName], prop.PropertyType));
+                    foreach (var prop in props)
+                    {
+                        var columnName = (_columnMappings.ContainsKey(prop.Name)) ?
+                            _columnMappings[prop.Name] :
+                            prop.Name;
+                        if (columns.Contains(columnName))
+                            result.SetProperty(prop.Name, Convert.ChangeType(data[columnName], prop.PropertyType));
+                    }
+                }
+                else
+                {
+                    result = (T)Convert.ChangeType(data[0], typeof(T));
                 }
                 results.Add(result);
             }

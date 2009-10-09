@@ -2,6 +2,8 @@ LinqToExcel Todo List
 
 - Finish Implementing All ResultOperators in SqlGeneratorQueryModelVisitor.VisitResultOperator
 
+- Change As<> to Cast<> in Cell class
+
 - Implement Select Transform
 
 - Finalize API

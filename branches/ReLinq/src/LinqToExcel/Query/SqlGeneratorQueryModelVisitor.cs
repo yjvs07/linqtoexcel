@@ -10,6 +10,7 @@ using Remotion.Data.Linq.Clauses.ResultOperators;
 using System.Linq.Expressions;
 using Remotion.Logging;
 using System.Reflection;
+using Remotion.Collections;
 
 namespace LinqToExcel.Query
 {
@@ -64,11 +65,9 @@ namespace LinqToExcel.Query
                 if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
                 {
                     var mExp = queryModel.SelectClause.Selector as MemberExpression;
-                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name))
-                                         ?
-                                             _columnMappings[mExp.Member.Name]
-                                         :
-                                             mExp.Member.Name;
+                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                        _columnMappings[mExp.Member.Name] :
+                        mExp.Member.Name;
                     _aggregate = string.Format("AVG({0})", columnName);
                 }
             }
@@ -95,9 +94,27 @@ namespace LinqToExcel.Query
             else if (resultOperator is LongCountResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is MaxResultOperator)
-                throw new NotImplementedException();
+            {
+                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+                {
+                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
+                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                        _columnMappings[mExp.Member.Name] :
+                        mExp.Member.Name;
+                    _aggregate = string.Format("MAX({0})", columnName);
+                }
+            }
             else if (resultOperator is MinResultOperator)
-                throw new NotImplementedException();
+            {
+                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+                {
+                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
+                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                        _columnMappings[mExp.Member.Name] :
+                        mExp.Member.Name;
+                    _aggregate = string.Format("MIN({0})", columnName);
+                }
+            }
             else if (resultOperator is OfTypeResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is ReverseResultOperator)
@@ -116,13 +133,26 @@ namespace LinqToExcel.Query
                         mExp.Member.Name;
                     _aggregate = string.Format("SUM({0})", columnName);
                 }
-
             }
             else if (resultOperator is TakeResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is UnionResultOperator)
                 throw new NotImplementedException();
             base.VisitResultOperator(resultOperator, queryModel, index);
+        }
+
+        protected override void VisitBodyClauses(ObservableCollection<IBodyClause> bodyClauses, QueryModel queryModel)
+        {
+            var orderClause = bodyClauses.First() as OrderByClause;
+            if (orderClause != null)
+            {
+                var mExp = orderClause.Orderings.First().Expression as MemberExpression;
+                var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                    _columnMappings[mExp.Member.Name] :
+                    mExp.Member.Name;
+                _orderBy = columnName + " " + orderClause.Orderings.First().OrderingDirection.ToString();
+            }
+            base.VisitBodyClauses(bodyClauses, queryModel);
         }
 
         public string GetSqlString()

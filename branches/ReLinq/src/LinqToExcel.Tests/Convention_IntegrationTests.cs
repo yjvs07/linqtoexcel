@@ -171,12 +171,66 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
+        public void count()
+        {
+            var companyCount = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).Count();
+
+            Assert.AreEqual(7, companyCount);
+        }
+
+        [Test]
+        public void sum()
+        {
+            var companySum = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                              select c).Sum(x => x.EmployeeCount);
+
+            Assert.AreEqual(30723, companySum);
+        }
+
+        [Test]
         public void average()
         {
             var averageEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
                                     select c).Average(x => x.EmployeeCount);
 
             Assert.AreEqual(4389, averageEmployees);
+        }
+
+        [Test]
+        public void max()
+        {
+            var maxEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).Max(x => x.EmployeeCount);
+
+            Assert.AreEqual(29839, maxEmployees);
+        }
+
+        [Test]
+        public void min()
+        {
+            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).Min(x => x.EmployeeCount);
+
+            Assert.AreEqual(1, minEmployees);
+        }
+
+        [Test]
+        public void oderby()
+        {
+            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).OrderBy(x => x.EmployeeCount);
+
+            Assert.AreEqual(1, minEmployees.First().EmployeeCount);
+        }
+
+        [Test]
+        public void oderby_desc()
+        {
+            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).OrderByDescending(x => x.EmployeeCount);
+
+            Assert.AreEqual(29839, minEmployees.First().EmployeeCount);
         }
     }
 }
