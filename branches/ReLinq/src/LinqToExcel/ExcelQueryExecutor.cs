@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using LinqToExcel.Extensions.Reflection;
 using Remotion.Data.Linq;
@@ -10,6 +11,7 @@ using System.Data.OleDb;
 using System.Data;
 using Remotion.Logging;
 using System.Reflection;
+using Remotion.Data.Linq.Clauses.ResultOperators;
 
 namespace LinqToExcel
 {
@@ -40,6 +42,24 @@ namespace LinqToExcel
         /// </summary>
         public T ExecuteSingle<T>(QueryModel queryModel, bool returnDefaultWhenEmpty)
         {
+            var dic = new Dictionary<Type, Dictionary<bool, Expression<Func<IEnumerable<T>, T>>>>();
+            dic[typeof(LastResultOperator)] = new Dictionary<bool, Expression<Func<IEnumerable<T>, T>>>();
+            dic[typeof(LastResultOperator)][true] = (arg) => arg.LastOrDefault();
+            dic[typeof(LastResultOperator)][false] = (arg) => arg.Last();
+
+            var results = ExecuteCollection<T>(queryModel);
+            var resultOperator = queryModel.ResultOperators.FirstOrDefault().GetType();
+            if (dic.ContainsKey(resultOperator))
+            {
+                return dic[resultOperator][returnDefaultWhenEmpty].Compile().Invoke(results);
+            }
+            if (queryModel.ResultOperators.FirstOrDefault() is LastResultOperator)
+                return results.Last();
+            else
+            {
+                
+            }
+
             return returnDefaultWhenEmpty ?
                 ExecuteCollection<T>(queryModel).FirstOrDefault() :
                 ExecuteCollection<T>(queryModel).First();

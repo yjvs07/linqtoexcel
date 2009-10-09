@@ -232,5 +232,14 @@ namespace LinqToExcel.Tests
 
             Assert.AreEqual(29839, minEmployees.First().EmployeeCount);
         }
+
+        [Test]
+        public void last()
+        {
+            var lastEmployee = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).Last();
+
+            Assert.AreEqual("Ontario Systems", lastEmployee.Name);
+        }
     }
 }

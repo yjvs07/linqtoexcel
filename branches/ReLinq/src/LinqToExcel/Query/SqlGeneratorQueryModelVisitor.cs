@@ -90,7 +90,9 @@ namespace LinqToExcel.Query
             else if (resultOperator is IntersectResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is LastResultOperator)
-                throw new NotImplementedException();
+            {
+                //do nothing now
+            }
             else if (resultOperator is LongCountResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is MaxResultOperator)
@@ -143,7 +145,7 @@ namespace LinqToExcel.Query
 
         protected override void VisitBodyClauses(ObservableCollection<IBodyClause> bodyClauses, QueryModel queryModel)
         {
-            var orderClause = bodyClauses.First() as OrderByClause;
+            var orderClause = bodyClauses.FirstOrDefault() as OrderByClause;
             if (orderClause != null)
             {
                 var mExp = orderClause.Orderings.First().Expression as MemberExpression;
