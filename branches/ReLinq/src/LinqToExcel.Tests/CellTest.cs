@@ -29,22 +29,22 @@ namespace LinqToExcel.Tests
         public void As_converts_cell_value_type_to_generic_argument_type()
         {
             var newCell = new Cell("2");
-            Assert.AreEqual(2, newCell.As<int>());
-            Assert.AreEqual(typeof(int), newCell.As<int>().GetType());
+            Assert.AreEqual(2, newCell.Cast<int>());
+            Assert.AreEqual(typeof(int), newCell.Cast<int>().GetType());
         }
 
         [Test]
         public void As_returns_default_generic_value_when_value_is_null()
         {
             var newCell = new Cell(null);
-            Assert.AreEqual(0, newCell.As<int>());
+            Assert.AreEqual(0, newCell.Cast<int>());
         }
 
         [Test]
         public void ValueAs_returns_default_generic_value_when_value_is_DBNull()
         {
             var newCell = new Cell(DBNull.Value);
-            Assert.AreEqual(0, newCell.As<int>());
+            Assert.AreEqual(0, newCell.Cast<int>());
         }
 
         [Test]

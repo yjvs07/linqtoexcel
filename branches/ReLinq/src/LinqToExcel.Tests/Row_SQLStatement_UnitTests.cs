@@ -53,7 +53,7 @@ namespace LinqToExcel.Tests
         public void column_name_is_cast_in_where_clause()
         {
             var companies = from c in ExcelQueryFactory.Worksheet("")
-                            where c["Modified"].As<DateTime>() < DateTime.Now
+                            where c["Modified"].Cast<DateTime>() < DateTime.Now
                             select c;
             
             try { companies.GetEnumerator(); }

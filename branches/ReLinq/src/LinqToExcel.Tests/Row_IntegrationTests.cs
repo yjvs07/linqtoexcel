@@ -30,8 +30,8 @@ namespace LinqToExcel.Tests
 
             Assert.AreEqual("ACME", firstCompany["Name"].ToString());
             Assert.AreEqual("Bugs Bunny", firstCompany["CEO"].ToString());
-            Assert.AreEqual(25, firstCompany["EmployeeCount"].As<int>());
-            Assert.AreEqual(new DateTime(1918, 11, 11).Date, firstCompany["StartDate"].As<DateTime>().Date);
+            Assert.AreEqual(25, firstCompany["EmployeeCount"].Cast<int>());
+            Assert.AreEqual(new DateTime(1918, 11, 11).Date, firstCompany["StartDate"].Cast<DateTime>().Date);
         }
     }
 }

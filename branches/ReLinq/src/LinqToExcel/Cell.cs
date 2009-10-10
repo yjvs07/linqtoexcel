@@ -22,10 +22,10 @@ namespace LinqToExcel
         }
 
         /// <summary>
-        /// Cell's value converted as the generic argument type
+        /// Casts the cell's value to the generic argument type
         /// </summary>
         /// <typeparam name="T">Object type to convert to</typeparam>
-        public T As<T>()
+        public T Cast<T>()
         {
             return (Value == null || Value is DBNull) ?
                 default(T) :
