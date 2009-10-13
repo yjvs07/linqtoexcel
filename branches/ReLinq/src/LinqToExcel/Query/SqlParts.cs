@@ -7,20 +7,33 @@ namespace LinqToExcel.Query
 {
     public class SqlParts
     {
+        public string Aggregate { get; set; }
         public string Table { get; set;}
-        private string _where;
-        private string _orderBy;
+        public string Where { get; set; }
+        public string OrderBy { get; set; }
+        public bool OrderByAsc { get; set; }
+
+        public SqlParts()
+        {
+            OrderByAsc = true;
+        }
 
         public override string ToString()
         {
             var sql = new StringBuilder();
-            sql.AppendFormat("SELECT * FROM {0}", Table);
-            if (!String.IsNullOrEmpty(_where))
-                sql.AppendFormat("WHERE {0}", _where);
-            if (!String.IsNullOrEmpty(_orderBy))
-                sql.AppendFormat("ORDER BY {0}", _orderBy);
+            sql.AppendFormat("SELECT {0} FROM {1}", 
+                Aggregate,
+                Table);
+            if (!String.IsNullOrEmpty(Where))
+                sql.AppendFormat("WHERE {0}", Where);
+            if (!String.IsNullOrEmpty(OrderBy))
+            {
+                var asc = (OrderByAsc) ? "ASC" : "DESC";
+                sql.AppendFormat("ORDER BY {0} {1}", 
+                    OrderBy,
+                    asc);
+            }
             return sql.ToString();
         }
-
     }
 }

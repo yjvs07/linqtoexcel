@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{195B956A-8029-44FD-9518-C04F5280611F}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -71,7 +71,6 @@
     <Compile Include="ConnectionString_UnitTests.cs" />
     <Compile Include="Excel2007_IntegrationTests.cs" />
     <Compile Include="MiscTests.cs" />
-    <Compile Include="ObjectExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RowTest.cs" />
     <Compile Include="Row_IntegrationTests.cs" />

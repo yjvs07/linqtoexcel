@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using LinqToExcel.Extensions.Reflection;
 using Remotion.Data.Linq;
 using LinqToExcel.Query;
 using System.IO;

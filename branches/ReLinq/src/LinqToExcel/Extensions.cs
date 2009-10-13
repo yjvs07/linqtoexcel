@@ -4,21 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
-namespace LinqToExcel.Extensions.Reflection
+namespace LinqToExcel
 {
-    internal static class ReflectionExtensions
+    public static class Extensions
     {
-        /// <summary>
-        /// Gets the value of a property
-        /// </summary>
-        /// <typeparam name="T">Property type</typeparam>
-        /// <param name="propertyName">Name of the property</param>
-        /// <returns>Returns the value of the property</returns>
-        public static T GetProperty<T>(this object @object, string propertyName)
-        {
-            return (T)@object.GetType().InvokeMember(propertyName, BindingFlags.GetProperty, null, @object, null);
-        }
-
         /// <summary>
         /// Sets the value of a property
         /// </summary>
