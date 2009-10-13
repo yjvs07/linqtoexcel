@@ -73,7 +73,7 @@ namespace LinqToExcel
 
             var sql = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
             sql.VisitQueryModel(queryModel);
-            LogSqlStatement(sql.GetSqlString(), sql.SqlParams);
+            LogSqlStatement(sql.SqlStatement, sql.SqlStatement.Parameters);
 
             IEnumerable<T> results;
 
@@ -81,8 +81,9 @@ namespace LinqToExcel
             using (var command = conn.CreateCommand())
             {
                 conn.Open();
-                command.CommandText = sql.GetSqlString();
-                command.Parameters.AddRange(sql.SqlParams.ToArray());
+                command.CommandText = sql.SqlStatement;
+                Console.WriteLine(command.CommandText);
+                command.Parameters.AddRange(sql.SqlStatement.Parameters.ToArray());
                 var data = command.ExecuteReader();
 
                 var columns = GetColumnNames(data);
@@ -92,6 +93,14 @@ namespace LinqToExcel
             }
 
             return results;
+        }
+
+        private SqlParts GetSQLStatement(QueryModel queryModel)
+        {
+            var sql = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
+            sql.VisitQueryModel(queryModel);
+            LogSqlStatement(sql.SqlStatement, sql.SqlStatement.Parameters);
+            return sql.SqlStatement;
         }
 
         private string GetConnectionString()

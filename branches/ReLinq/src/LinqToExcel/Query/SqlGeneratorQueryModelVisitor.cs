@@ -16,18 +16,14 @@ namespace LinqToExcel.Query
 {
     public class SqlGeneratorQueryModelVisitor : QueryModelVisitorBase
     {
-        private readonly string _table;
-        private string _aggregate;
-        private string _where;
-        private IEnumerable<OleDbParameter> _params = new List<OleDbParameter>();
-        private string _orderBy;
+        public SqlParts SqlStatement { get; protected set; }
         private Dictionary<string, string> _columnMappings;
 
         public SqlGeneratorQueryModelVisitor(string table, Dictionary<string, string> columnMappings)
         {
-            _table = table;
+            SqlStatement = new SqlParts();
+            SqlStatement.Table = string.Format("[{0}$]", table);
             _columnMappings = columnMappings;
-            _aggregate = "*";
         }
 
         public override void VisitGroupJoinClause(GroupJoinClause groupJoinClause, QueryModel queryModel, int index)
@@ -52,8 +48,8 @@ namespace LinqToExcel.Query
         {
             var where = new WhereClauseExpressionTreeVisitor(queryModel.MainFromClause.ItemType, _columnMappings);
             where.Visit(whereClause.Predicate);
-            _where = where.WhereClause;
-            _params = where.Params;
+            SqlStatement.Where = where.WhereClause;
+            SqlStatement.Parameters = where.Params;
 
             base.VisitWhereClause(whereClause, queryModel, index);
         }
@@ -68,7 +64,7 @@ namespace LinqToExcel.Query
                     var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
                         _columnMappings[mExp.Member.Name] :
                         mExp.Member.Name;
-                    _aggregate = string.Format("AVG({0})", columnName);
+                    SqlStatement.Aggregate = string.Format("AVG({0})", columnName);
                 }
             }
             else if (resultOperator is CastResultOperator)
@@ -76,7 +72,7 @@ namespace LinqToExcel.Query
             else if (resultOperator is ContainsResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is CountResultOperator)
-                _aggregate = "COUNT(*)";
+                SqlStatement.Aggregate = "COUNT(*)";
             else if (resultOperator is DefaultIfEmptyResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is DistinctResultOperator)
@@ -84,7 +80,7 @@ namespace LinqToExcel.Query
             else if (resultOperator is ExceptResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is FirstResultOperator)
-                _aggregate = "TOP 1 *";
+                SqlStatement.Aggregate = "TOP 1 *";
             else if (resultOperator is GroupResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is IntersectResultOperator)
@@ -103,7 +99,7 @@ namespace LinqToExcel.Query
                     var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
                         _columnMappings[mExp.Member.Name] :
                         mExp.Member.Name;
-                    _aggregate = string.Format("MAX({0})", columnName);
+                    SqlStatement.Aggregate = string.Format("MAX({0})", columnName);
                 }
             }
             else if (resultOperator is MinResultOperator)
@@ -114,7 +110,7 @@ namespace LinqToExcel.Query
                     var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
                         _columnMappings[mExp.Member.Name] :
                         mExp.Member.Name;
-                    _aggregate = string.Format("MIN({0})", columnName);
+                    SqlStatement.Aggregate = string.Format("MIN({0})", columnName);
                 }
             }
             else if (resultOperator is OfTypeResultOperator)
@@ -133,7 +129,7 @@ namespace LinqToExcel.Query
                     var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
                         _columnMappings[mExp.Member.Name] :
                         mExp.Member.Name;
-                    _aggregate = string.Format("SUM({0})", columnName);
+                    SqlStatement.Aggregate = string.Format("SUM({0})", columnName);
                 }
             }
             else if (resultOperator is TakeResultOperator)
@@ -152,27 +148,11 @@ namespace LinqToExcel.Query
                 var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
                     _columnMappings[mExp.Member.Name] :
                     mExp.Member.Name;
-                _orderBy = columnName + " " + orderClause.Orderings.First().OrderingDirection.ToString();
+                SqlStatement.OrderBy = columnName;
+                var orderDirection = orderClause.Orderings.First().OrderingDirection;
+                SqlStatement.OrderByAsc = (orderDirection == OrderingDirection.Asc) ? true : false;
             }
             base.VisitBodyClauses(bodyClauses, queryModel);
-        }
-
-        public string GetSqlString()
-        {
-            var sql = new StringBuilder();
-            sql.AppendFormat("SELECT {0} FROM [{1}$]", _aggregate, _table);
-            if (_table.EndsWith("csv"))
-                sql.Replace("$", "");
-            if (!String.IsNullOrEmpty(_where))
-                sql.AppendFormat(" WHERE {0}", _where);
-            if (!String.IsNullOrEmpty(_orderBy))
-                sql.AppendFormat(" ORDER BY {0}", _orderBy);
-            return sql.ToString();
-        }
-
-        public IEnumerable<OleDbParameter> SqlParams
-        {
-            get { return _params; }
         }
     }
 }
