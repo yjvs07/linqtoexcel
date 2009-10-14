@@ -33,7 +33,7 @@ namespace LinqToExcel
         /// </summary>
         public T ExecuteScalar<T>(QueryModel queryModel)
         {
-            return ExecuteCollection<T>(queryModel).First();
+            return ExecuteSingle<T>(queryModel, false);
         }
 
         /// <summary>
@@ -41,27 +41,81 @@ namespace LinqToExcel
         /// </summary>
         public T ExecuteSingle<T>(QueryModel queryModel, bool returnDefaultWhenEmpty)
         {
-            var dic = new Dictionary<Type, Dictionary<bool, Expression<Func<IEnumerable<T>, T>>>>();
-            dic[typeof(LastResultOperator)] = new Dictionary<bool, Expression<Func<IEnumerable<T>, T>>>();
-            dic[typeof(LastResultOperator)][true] = (arg) => arg.LastOrDefault();
-            dic[typeof(LastResultOperator)][false] = (arg) => arg.Last();
+            var postProcessing = new Dictionary<Type, Dictionary<bool, Func<IEnumerable<T>, T>>>();
+            postProcessing[typeof(LastResultOperator)] = new Dictionary<bool, Func<IEnumerable<T>, T>>();
+            postProcessing[typeof(LastResultOperator)][true] = (arg) => arg.LastOrDefault();
+            postProcessing[typeof(LastResultOperator)][false] = (arg) => arg.Last();
 
-            var results = ExecuteCollection<T>(queryModel);
+            var preProcessing = new Dictionary<Type, Action<QueryModel, SqlParts>>();
+            preProcessing[typeof (AverageResultOperator)] =
+                (query, sql) => UpdateAggregate(query, sql, "AVG");
+            preProcessing[typeof(CountResultOperator)] =
+                (query, sql) => sql.Aggregate = "COUNT(*)";
+            preProcessing[typeof(FirstResultOperator)] =
+                (query, sql) => sql.Aggregate = "TOP 1 *";
+            preProcessing[typeof(MaxResultOperator)] =
+                (query, sql) => UpdateAggregate(query, sql, "MAX");
+            preProcessing[typeof(MinResultOperator)] =
+                (query, sql) => UpdateAggregate(query, sql, "MIN");
+            preProcessing[typeof(SumResultOperator)] =
+                (query, sql) => UpdateAggregate(query, sql, "SUM");
+
+            var connString = GetConnectionString();
+            var sqlVisitor = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
+            sqlVisitor.VisitQueryModel(queryModel);
+
             var resultOperator = queryModel.ResultOperators.FirstOrDefault().GetType();
-            if (dic.ContainsKey(resultOperator))
+            if (preProcessing.ContainsKey(resultOperator))
+                preProcessing[resultOperator](queryModel, sqlVisitor.SqlStatement);
+
+            LogSqlStatement(sqlVisitor.SqlStatement, sqlVisitor.SqlStatement.Parameters);
+
+            IEnumerable<T> results;
+
+            using (var conn = new OleDbConnection(connString))
+            using (var command = conn.CreateCommand())
             {
-                return dic[resultOperator][returnDefaultWhenEmpty].Compile().Invoke(results);
+                conn.Open();
+                command.CommandText = sqlVisitor.SqlStatement;
+                Console.WriteLine(command.CommandText);
+                command.Parameters.AddRange(sqlVisitor.SqlStatement.Parameters.ToArray());
+                var data = command.ExecuteReader();
+
+                var columns = GetColumnNames(data);
+                results = (queryModel.MainFromClause.ItemType == typeof(Row)) ?
+                    GetRowResults<T>(data, columns) :
+                    GetCustomTypeResults<T>(data, columns, queryModel);
             }
-            if (queryModel.ResultOperators.FirstOrDefault() is LastResultOperator)
-                return results.Last();
+
+            
+            if (postProcessing.ContainsKey(resultOperator))
+            {
+                return postProcessing[resultOperator][returnDefaultWhenEmpty](results);
+            }
             else
             {
-                
+                return (returnDefaultWhenEmpty) ? 
+                    results.FirstOrDefault() : 
+                    results.First();
             }
+        }
 
-            return returnDefaultWhenEmpty ?
-                ExecuteCollection<T>(queryModel).FirstOrDefault() :
-                ExecuteCollection<T>(queryModel).First();
+        private void UpdateAggregate(QueryModel queryModel, SqlParts sql, string aggregateName)
+        {
+            sql.Aggregate = string.Format("{0}({1})",
+                aggregateName,
+                GetResultColumnName(queryModel));
+        }
+
+        private string GetResultColumnName(QueryModel queryModel)
+        {
+            //if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+            //{
+                var mExp = queryModel.SelectClause.Selector as MemberExpression;
+                return (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                    _columnMappings[mExp.Member.Name] :
+                    mExp.Member.Name;
+            //}
         }
 
         /// <summary>

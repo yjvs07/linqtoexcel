@@ -23,6 +23,8 @@ namespace LinqToExcel.Query
         {
             SqlStatement = new SqlParts();
             SqlStatement.Table = string.Format("[{0}$]", table);
+            if (table.ToLower().EndsWith(".csv"))
+                SqlStatement.Table = SqlStatement.Table.Replace("$]", "]");
             _columnMappings = columnMappings;
         }
 
@@ -58,29 +60,29 @@ namespace LinqToExcel.Query
         {
             if (resultOperator is AverageResultOperator)
             {
-                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
-                {
-                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
-                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
-                        _columnMappings[mExp.Member.Name] :
-                        mExp.Member.Name;
-                    SqlStatement.Aggregate = string.Format("AVG({0})", columnName);
-                }
+                //if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+                //{
+                //    var mExp = queryModel.SelectClause.Selector as MemberExpression;
+                //    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                //        _columnMappings[mExp.Member.Name] :
+                //        mExp.Member.Name;
+                //    SqlStatement.Aggregate = string.Format("AVG({0})", columnName);
+                //}
             }
             else if (resultOperator is CastResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is ContainsResultOperator)
                 throw new NotImplementedException();
-            else if (resultOperator is CountResultOperator)
-                SqlStatement.Aggregate = "COUNT(*)";
+            //else if (resultOperator is CountResultOperator)
+            //    SqlStatement.Aggregate = "COUNT(*)";
             else if (resultOperator is DefaultIfEmptyResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is DistinctResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is ExceptResultOperator)
                 throw new NotImplementedException();
-            else if (resultOperator is FirstResultOperator)
-                SqlStatement.Aggregate = "TOP 1 *";
+            //else if (resultOperator is FirstResultOperator)
+            //    SqlStatement.Aggregate = "TOP 1 *";
             else if (resultOperator is GroupResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is IntersectResultOperator)
@@ -91,28 +93,28 @@ namespace LinqToExcel.Query
             }
             else if (resultOperator is LongCountResultOperator)
                 throw new NotImplementedException();
-            else if (resultOperator is MaxResultOperator)
-            {
-                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
-                {
-                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
-                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
-                        _columnMappings[mExp.Member.Name] :
-                        mExp.Member.Name;
-                    SqlStatement.Aggregate = string.Format("MAX({0})", columnName);
-                }
-            }
-            else if (resultOperator is MinResultOperator)
-            {
-                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
-                {
-                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
-                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
-                        _columnMappings[mExp.Member.Name] :
-                        mExp.Member.Name;
-                    SqlStatement.Aggregate = string.Format("MIN({0})", columnName);
-                }
-            }
+            //else if (resultOperator is MaxResultOperator)
+            //{
+            //    if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+            //    {
+            //        var mExp = queryModel.SelectClause.Selector as MemberExpression;
+            //        var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+            //            _columnMappings[mExp.Member.Name] :
+            //            mExp.Member.Name;
+            //        SqlStatement.Aggregate = string.Format("MAX({0})", columnName);
+            //    }
+            //}
+            //else if (resultOperator is MinResultOperator)
+            //{
+            //    if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+            //    {
+            //        var mExp = queryModel.SelectClause.Selector as MemberExpression;
+            //        var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+            //            _columnMappings[mExp.Member.Name] :
+            //            mExp.Member.Name;
+            //        SqlStatement.Aggregate = string.Format("MIN({0})", columnName);
+            //    }
+            //}
             else if (resultOperator is OfTypeResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is ReverseResultOperator)
@@ -121,17 +123,17 @@ namespace LinqToExcel.Query
                 throw new NotImplementedException();
             else if (resultOperator is SkipResultOperator)
                 throw new NotImplementedException();
-            else if (resultOperator is SumResultOperator)
-            {
-                if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
-                {
-                    var mExp = queryModel.SelectClause.Selector as MemberExpression;
-                    var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
-                        _columnMappings[mExp.Member.Name] :
-                        mExp.Member.Name;
-                    SqlStatement.Aggregate = string.Format("SUM({0})", columnName);
-                }
-            }
+            //else if (resultOperator is SumResultOperator)
+            //{
+            //    if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
+            //    {
+            //        var mExp = queryModel.SelectClause.Selector as MemberExpression;
+            //        var columnName = (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+            //            _columnMappings[mExp.Member.Name] :
+            //            mExp.Member.Name;
+            //        SqlStatement.Aggregate = string.Format("SUM({0})", columnName);
+            //    }
+            //}
             else if (resultOperator is TakeResultOperator)
                 throw new NotImplementedException();
             else if (resultOperator is UnionResultOperator)
