@@ -262,11 +262,12 @@ namespace LinqToExcel.Tests
         public void orderby()
         {
             var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            orderby c.StartDate ascending
                             select c;
 
-            try { companies.OrderBy(x => x.StartDate); }
+            try { companies.ToList(); }
             catch (OleDbException) { }
-            var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} Asc", GetSQLFieldName("StartDate"));
+            var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} ASC", GetSQLFieldName("StartDate"));
             Assert.AreEqual(expectedSql, GetSQLStatement());
         }
 
@@ -274,11 +275,12 @@ namespace LinqToExcel.Tests
         public void orderby_desc()
         {
             var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            orderby c.StartDate descending 
                             select c;
 
-            try { companies.OrderByDescending(x => x.StartDate); }
+            try { companies.ToList(); }
             catch (OleDbException) { }
-            var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} Desc", GetSQLFieldName("StartDate"));
+            var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} DESC", GetSQLFieldName("StartDate"));
             Assert.AreEqual(expectedSql, GetSQLStatement());
         }
     }

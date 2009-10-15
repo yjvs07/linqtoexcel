@@ -218,8 +218,9 @@ namespace LinqToExcel.Tests
         [Test]
         public void oderby()
         {
-            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
-                                select c).OrderBy(x => x.EmployeeCount);
+            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                               orderby c.EmployeeCount ascending
+                               select c;
 
             Assert.AreEqual(1, minEmployees.First().EmployeeCount);
         }
@@ -227,8 +228,9 @@ namespace LinqToExcel.Tests
         [Test]
         public void oderby_desc()
         {
-            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
-                                select c).OrderByDescending(x => x.EmployeeCount);
+            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                               orderby c.EmployeeCount descending
+                               select c;
 
             Assert.AreEqual(29839, minEmployees.First().EmployeeCount);
         }

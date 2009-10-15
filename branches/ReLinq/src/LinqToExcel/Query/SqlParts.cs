@@ -38,7 +38,7 @@ namespace LinqToExcel.Query
             if (!String.IsNullOrEmpty(OrderBy))
             {
                 var asc = (OrderByAsc) ? "ASC" : "DESC";
-                sql.AppendFormat("ORDER BY {0} {1}",
+                sql.AppendFormat(" ORDER BY [{0}] {1}",
                     OrderBy,
                     asc);
             }
