@@ -283,5 +283,38 @@ namespace LinqToExcel.Tests
             var expectedSql = string.Format("SELECT * FROM [Sheet1$] ORDER BY {0} DESC", GetSQLFieldName("StartDate"));
             Assert.AreEqual(expectedSql, GetSQLStatement());
         }
+
+        [Test]
+        public void last()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.Last(); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT * FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
+        public void take()
+        {
+            var companies = (from c in ExcelQueryFactory.Worksheet<Company>("")
+                             select c).Take(3);
+
+            try { companies.ToList(); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT TOP 3 * FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
+        public void skip()
+        {
+            var companies = (from c in ExcelQueryFactory.Worksheet<Company>("")
+                             select c).Skip(3);
+
+            try { companies.ToList(); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT * FROM [Sheet1$]", GetSQLStatement());
+        }
     }
 }

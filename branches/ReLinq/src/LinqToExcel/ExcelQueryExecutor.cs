@@ -11,6 +11,7 @@ using System.Data;
 using Remotion.Logging;
 using System.Reflection;
 using Remotion.Data.Linq.Clauses.ResultOperators;
+using Remotion.Data.Linq.Clauses;
 
 namespace LinqToExcel
 {
@@ -41,10 +42,10 @@ namespace LinqToExcel
         /// </summary>
         public T ExecuteSingle<T>(QueryModel queryModel, bool returnDefaultWhenEmpty)
         {
-            var postProcessing = new Dictionary<Type, Dictionary<bool, Func<IEnumerable<T>, T>>>();
-            postProcessing[typeof(LastResultOperator)] = new Dictionary<bool, Func<IEnumerable<T>, T>>();
-            postProcessing[typeof(LastResultOperator)][true] = (arg) => arg.LastOrDefault();
-            postProcessing[typeof(LastResultOperator)][false] = (arg) => arg.Last();
+            var postProcessing = new Dictionary<Type, Dictionary<bool, Func<ResultOperatorBase, IEnumerable<T>, T>>>();
+            postProcessing[typeof(LastResultOperator)] = new Dictionary<bool, Func<ResultOperatorBase, IEnumerable<T>, T>>();
+            postProcessing[typeof(LastResultOperator)][true] = (res, arg) => arg.LastOrDefault();
+            postProcessing[typeof(LastResultOperator)][false] = (res, arg) => arg.Last();
 
             var preProcessing = new Dictionary<Type, Action<QueryModel, SqlParts>>();
             preProcessing[typeof (AverageResultOperator)] =
@@ -59,14 +60,16 @@ namespace LinqToExcel
                 (query, sql) => UpdateAggregate(query, sql, "MIN");
             preProcessing[typeof(SumResultOperator)] =
                 (query, sql) => UpdateAggregate(query, sql, "SUM");
+            preProcessing[typeof(TakeResultOperator)] = 
+                Take;
 
             var connString = GetConnectionString();
             var sqlVisitor = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
             sqlVisitor.VisitQueryModel(queryModel);
 
-            var resultOperator = queryModel.ResultOperators.FirstOrDefault().GetType();
-            if (preProcessing.ContainsKey(resultOperator))
-                preProcessing[resultOperator](queryModel, sqlVisitor.SqlStatement);
+            var resultOperator = queryModel.ResultOperators.FirstOrDefault();
+            if (preProcessing.ContainsKey(resultOperator.GetType()))
+                preProcessing[resultOperator.GetType()](queryModel, sqlVisitor.SqlStatement);
 
             LogSqlStatement(sqlVisitor.SqlStatement, sqlVisitor.SqlStatement.Parameters);
 
@@ -88,9 +91,9 @@ namespace LinqToExcel
             }
 
             
-            if (postProcessing.ContainsKey(resultOperator))
+            if (postProcessing.ContainsKey(resultOperator.GetType()))
             {
-                return postProcessing[resultOperator][returnDefaultWhenEmpty](results);
+                return postProcessing[resultOperator.GetType()][returnDefaultWhenEmpty](null, results);
             }
             else
             {
@@ -98,6 +101,11 @@ namespace LinqToExcel
                     results.FirstOrDefault() : 
                     results.First();
             }
+        }
+
+        private void Take(QueryModel query, SqlParts sql)
+        {
+            
         }
 
         private void UpdateAggregate(QueryModel queryModel, SqlParts sql, string aggregateName)
@@ -123,6 +131,11 @@ namespace LinqToExcel
         /// </summary>
         public IEnumerable<T> ExecuteCollection<T>(QueryModel queryModel)
         {
+            var resultOperator = queryModel.ResultOperators.FirstOrDefault();
+            var postProcessing = new Dictionary<Type, Func<ResultOperatorBase, IEnumerable<T>, IEnumerable<T>>>();
+            postProcessing[typeof (SkipResultOperator)] =
+                (res, arg) => arg.Skip(res.Cast<SkipResultOperator>().GetConstantCount());
+
             var connString = GetConnectionString();
 
             var sql = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
@@ -145,6 +158,10 @@ namespace LinqToExcel
                     GetRowResults<T>(data, columns) : 
                     GetCustomTypeResults<T>(data, columns, queryModel);
             }
+
+            if (resultOperator != null &&
+                postProcessing.ContainsKey(resultOperator.GetType()))
+                results = postProcessing[resultOperator.GetType()](resultOperator, results);
 
             return results;
         }

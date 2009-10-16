@@ -238,10 +238,28 @@ namespace LinqToExcel.Tests
         [Test]
         public void last()
         {
-            var lastEmployee = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
-                                select c).Last();
+            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                               select c;
 
-            Assert.AreEqual("Ontario Systems", lastEmployee.Name);
+            Assert.AreEqual(455, minEmployees.Last().EmployeeCount);
+        }
+
+        [Test]
+        public void take()
+        {
+            var threeEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                  select c).Take(3);
+
+            Assert.AreEqual(3, threeEmployees.ToList().Count);
+        }
+
+        [Test]
+        public void skip()
+        {
+            var threeEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                  select c).Skip(3);
+
+            Assert.AreEqual(4, threeEmployees.ToList().Count);
         }
     }
 }

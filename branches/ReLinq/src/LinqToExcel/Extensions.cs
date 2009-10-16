@@ -28,5 +28,10 @@ namespace LinqToExcel
         {
             return @object.GetType().InvokeMember(methodName, BindingFlags.InvokeMethod, null, @object, args);
         }
+
+        public static T Cast<T>(this object @object)
+        {
+            return (T)Convert.ChangeType(@object, typeof(T));
+        }
     }
 }

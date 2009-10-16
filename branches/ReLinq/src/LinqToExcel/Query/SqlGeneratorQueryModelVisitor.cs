@@ -121,8 +121,8 @@ namespace LinqToExcel.Query
                 throw new NotImplementedException();
             else if (resultOperator is SingleResultOperator)
                 throw new NotImplementedException();
-            else if (resultOperator is SkipResultOperator)
-                throw new NotImplementedException();
+            //else if (resultOperator is SkipResultOperator)
+            //    throw new NotImplementedException();
             //else if (resultOperator is SumResultOperator)
             //{
             //    if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
@@ -135,7 +135,10 @@ namespace LinqToExcel.Query
             //    }
             //}
             else if (resultOperator is TakeResultOperator)
-                throw new NotImplementedException();
+            {
+                var take = resultOperator as TakeResultOperator;
+                SqlStatement.Aggregate = string.Format("TOP {0} *", take.Count);
+            }
             else if (resultOperator is UnionResultOperator)
                 throw new NotImplementedException();
             base.VisitResultOperator(resultOperator, queryModel, index);
