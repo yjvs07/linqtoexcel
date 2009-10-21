@@ -233,6 +233,15 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
+        public void long_count()
+        {
+            var companyCount = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select c).LongCount();
+
+            Assert.AreEqual(7, companyCount);
+        }
+
+        [Test]
         public void sum()
         {
             var companySum = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)

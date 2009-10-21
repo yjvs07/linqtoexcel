@@ -28,14 +28,19 @@ namespace LinqToExcel.Query
             _columnMappings = columnMappings;
         }
 
+        public override void VisitSelectClause(SelectClause selectClause, QueryModel queryModel)
+        {
+            base.VisitSelectClause(selectClause, queryModel);
+        }
+
         public override void VisitGroupJoinClause(GroupJoinClause groupJoinClause, QueryModel queryModel, int index)
         {
-            throw new NotSupportedException("Group join clause is not supported");
+            throw new NotSupportedException("LinqToExcel does not provide support for group join");
         }
 
         public override void VisitJoinClause(JoinClause joinClause, QueryModel queryModel, int index)
         {
-            throw new NotSupportedException("Join clause is not supported");
+            throw new NotSupportedException("LinqToExcel does not provide support for the Join() method");
         }
 
         public override void VisitQueryModel(QueryModel queryModel)
@@ -69,30 +74,30 @@ namespace LinqToExcel.Query
                 //    SqlStatement.Aggregate = string.Format("AVG({0})", columnName);
                 //}
             }
-            else if (resultOperator is CastResultOperator)
-                throw new NotImplementedException();
+            //else if (resultOperator is CastResultOperator)
+            //    throw new NotImplementedException();
             else if (resultOperator is ContainsResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Contains() method");
             //else if (resultOperator is CountResultOperator)
             //    SqlStatement.Aggregate = "COUNT(*)";
             else if (resultOperator is DefaultIfEmptyResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the DefaultIfEmpty() method");
             else if (resultOperator is DistinctResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Distinct() method");
             else if (resultOperator is ExceptResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Except() method");
             //else if (resultOperator is FirstResultOperator)
             //    SqlStatement.Aggregate = "TOP 1 *";
             else if (resultOperator is GroupResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Group() method");
             else if (resultOperator is IntersectResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Intersect() method");
             else if (resultOperator is LastResultOperator)
             {
                 //do nothing now
             }
-            else if (resultOperator is LongCountResultOperator)
-                throw new NotImplementedException();
+            //else if (resultOperator is LongCountResultOperator)
+            //    throw new NotImplementedException();
             //else if (resultOperator is MaxResultOperator)
             //{
             //    if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
@@ -116,11 +121,11 @@ namespace LinqToExcel.Query
             //    }
             //}
             else if (resultOperator is OfTypeResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the OfType() method");
             else if (resultOperator is ReverseResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Reverse() method");
             else if (resultOperator is SingleResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Single() method. Use the First() method instead");
             //else if (resultOperator is SkipResultOperator)
             //    throw new NotImplementedException();
             //else if (resultOperator is SumResultOperator)
@@ -140,7 +145,7 @@ namespace LinqToExcel.Query
                 SqlStatement.Aggregate = string.Format("TOP {0} *", take.Count);
             }
             else if (resultOperator is UnionResultOperator)
-                throw new NotImplementedException();
+                throw new NotSupportedException("LinqToExcel does not provide support for the Union() method");
             base.VisitResultOperator(resultOperator, queryModel, index);
         }
 

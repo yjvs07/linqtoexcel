@@ -76,6 +76,7 @@
     <Compile Include="Row_IntegrationTests.cs" />
     <Compile Include="Row_SQLStatement_UnitTests.cs" />
     <Compile Include="SQLLogStatements_Helper.cs" />
+    <Compile Include="UnSupportedMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LinqToExcel\LinqToExcel.csproj">

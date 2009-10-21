@@ -52,6 +52,8 @@ namespace LinqToExcel
                 (query, sql) => UpdateAggregate(query, sql, "AVG");
             preProcessing[typeof(CountResultOperator)] =
                 (query, sql) => sql.Aggregate = "COUNT(*)";
+            preProcessing[typeof(LongCountResultOperator)] =
+                (query, sql) => sql.Aggregate = "COUNT(*)";
             preProcessing[typeof(FirstResultOperator)] =
                 (query, sql) => sql.Aggregate = "TOP 1 *";
             preProcessing[typeof(MaxResultOperator)] =

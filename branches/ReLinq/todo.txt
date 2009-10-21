@@ -1,6 +1,6 @@
 LinqToExcel Todo List
 
-- Finish Implementing All ResultOperators in SqlGeneratorQueryModelVisitor.VisitResultOperator
+- Test linq statements with multiple result operators
 
 - Finalize API
 

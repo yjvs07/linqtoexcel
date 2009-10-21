@@ -215,6 +215,17 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
+        public void long_count()
+        {
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            select c;
+
+            try { companies.LongCount(); }
+            catch (OleDbException) { }
+            Assert.AreEqual("SELECT COUNT(*) FROM [Sheet1$]", GetSQLStatement());
+        }
+
+        [Test]
         public void sum()
         {
             var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
