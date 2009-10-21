@@ -162,6 +162,59 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
+        public void selection_projection()
+        {
+            var companyCities = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                                select new CompanyWithCity
+                                {
+                                    CEO = c.CEO,
+                                    City = "Omaha",
+                                };
+            foreach (var company in companyCities)
+            {
+                Assert.AreEqual("Omaha", company.City);
+                Assert.AreEqual("Bugs Bunny", company.CEO);
+                break;
+            }
+        }
+
+        [Test]
+        public void selection_row_projection()
+        {
+            var companyCities = from c in ExcelQueryFactory.Worksheet(_excelFileName)
+                                select new Company
+                                {
+                                    CEO = c["CEO"],
+                                    Name = c["Name"]
+                                };
+            
+            foreach (var company in companyCities)
+            {
+                Assert.AreEqual("ACME", company.Name);
+                Assert.AreEqual("Bugs Bunny", company.CEO);
+                break;
+            }
+        }
+
+        [Test]
+        public void selection_row_to_anonymous_projection()
+        {
+            var companyCities = from c in ExcelQueryFactory.Worksheet(_excelFileName)
+                                select new 
+                                {
+                                    Employees = c["EmployeeCount"].Cast<double>(),
+                                    Name = c["Name"].ToString()
+                                };
+
+            foreach (var company in companyCities)
+            {
+                Assert.AreEqual("ACME", company.Name);
+                Assert.AreEqual(25, company.Employees);
+                break;
+            }
+        }
+
+        [Test]
         public void first()
         {
             var firstCompany = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)

@@ -86,7 +86,7 @@ namespace LinqToExcel
 
                 var columns = GetColumnNames(data);
                 results = (queryModel.MainFromClause.ItemType == typeof(Row)) ?
-                    GetRowResults<T>(data, columns) :
+                    GetRowResults<T>(data, columns, queryModel) :
                     GetCustomTypeResults<T>(data, columns, queryModel);
             }
 
@@ -155,7 +155,7 @@ namespace LinqToExcel
 
                 var columns = GetColumnNames(data);
                 results = (queryModel.MainFromClause.ItemType == typeof(Row)) ? 
-                    GetRowResults<T>(data, columns) : 
+                    GetRowResults<T>(data, columns, queryModel) : 
                     GetCustomTypeResults<T>(data, columns, queryModel);
             }
 
@@ -205,9 +205,12 @@ namespace LinqToExcel
             return connString;
         }
 
-        private IEnumerable<T> GetRowResults<T>(IDataReader data, IEnumerable<string> columns)
+        private IEnumerable<T> GetRowResults<T>(IDataReader data, IEnumerable<string> columns, QueryModel queryModel)
         {
             var results = new List<T>();
+            Func<ResultObjectMapping, T> projector = null;
+            if (typeof(T) != typeof(Row))
+                projector = ProjectorBuildingExpressionTreeVisitor.BuildProjector<T>(queryModel.SelectClause.Selector);
             var columnIndexMapping = new Dictionary<string, int>();
             for (var i = 0; i < columns.Count(); i++)
                 columnIndexMapping[columns.ElementAt(i)] = i;
@@ -217,7 +220,12 @@ namespace LinqToExcel
                 IList<Cell> cells = new List<Cell>();
                 for (var i = 0; i < columns.Count(); i++)
                     cells.Add(new Cell(data[i]));
-                results.CallMethod("Add", new Row(cells, columnIndexMapping));
+                var row = new Row(cells, columnIndexMapping);
+                if (projector == null)
+                    results.CallMethod("Add", row);
+                else
+                    results.CallMethod("Add",
+                        projector(new ResultObjectMapping(queryModel.MainFromClause, row)));
             }
             return results;
         }
@@ -225,10 +233,13 @@ namespace LinqToExcel
         private IEnumerable<T> GetCustomTypeResults<T>(IDataReader data, IEnumerable<string> columns, QueryModel queryModel)
         {
             var results = new List<T>();
+            Type fromType = queryModel.MainFromClause.ItemType;
             var props = queryModel.MainFromClause.ItemType.GetProperties();
+            var selector = queryModel.SelectClause;
             while (data.Read())
             {
-                var result = Activator.CreateInstance<T>();
+                var result = Activator.CreateInstance(fromType);
+                T projection;
                 if (queryModel.ResultOperators.Count == 0 ||
                     queryModel.MainFromClause.ItemType == typeof(T))
                 {
@@ -240,12 +251,22 @@ namespace LinqToExcel
                         if (columns.Contains(columnName))
                             result.SetProperty(prop.Name, Convert.ChangeType(data[columnName], prop.PropertyType));
                     }
+                
+                    if (fromType == typeof(T))
+                    {
+                        projection = (T)result;
+                    }
+                    else
+                    {
+                        Func<ResultObjectMapping, T> projector = ProjectorBuildingExpressionTreeVisitor.BuildProjector<T>(queryModel.SelectClause.Selector);
+                        projection = projector(new ResultObjectMapping(queryModel.MainFromClause, result));
+                    }
                 }
                 else
                 {
-                    result = (T)Convert.ChangeType(data[0], typeof(T));
+                    projection = (T)Convert.ChangeType(data[0], typeof(T));
                 }
-                results.Add(result);
+                results.CallMethod("Add", projection);
             }
             return results;
         }
