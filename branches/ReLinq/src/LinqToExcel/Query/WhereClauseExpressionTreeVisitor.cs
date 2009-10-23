@@ -92,7 +92,6 @@ namespace LinqToExcel.Query
                     break;
                 default:
                     throw new NotSupportedException(string.Format("{0} statement is not supported", bExp.NodeType.ToString()));
-                    break;
             }
             VisitExpression(bRight);
             _whereClause.Append(")");
