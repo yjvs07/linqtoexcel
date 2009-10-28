@@ -13,6 +13,7 @@ using System.Reflection;
 using Remotion.Data.Linq.Clauses.ResultOperators;
 using Remotion.Data.Linq.Clauses;
 using System.Collections;
+using Remotion.Data.Linq.Clauses.StreamedData;
 
 namespace LinqToExcel
 {
@@ -43,68 +44,62 @@ namespace LinqToExcel
         /// </summary>
         public T ExecuteSingle<T>(QueryModel queryModel, bool returnDefaultWhenEmpty)
         {
-            throw new NotImplementedException();
-            //var postProcessing = new Dictionary<Type, Dictionary<bool, Func<ResultOperatorBase, IEnumerable<T>, T>>>();
-            //postProcessing[typeof(LastResultOperator)] = new Dictionary<bool, Func<ResultOperatorBase, IEnumerable<T>, T>>();
-            //postProcessing[typeof(LastResultOperator)][true] = (res, arg) => arg.LastOrDefault();
-            //postProcessing[typeof(LastResultOperator)][false] = (res, arg) => arg.Last();
+            return (returnDefaultWhenEmpty) ?
+                ExecuteCollection<T>(queryModel).FirstOrDefault() :
+                ExecuteCollection<T>(queryModel).First();
+        }
 
-            //var preProcessing = new Dictionary<Type, Action<QueryModel, SqlParts>>();
-            //preProcessing[typeof (AverageResultOperator)] =
-            //    (query, sql) => UpdateAggregate(query, sql, "AVG");
-            //preProcessing[typeof(CountResultOperator)] =
-            //    (query, sql) => sql.Aggregate = "COUNT(*)";
-			//preProcessing[typeof(LongCountResultOperator)] =
-            //    (query, sql) => sql.Aggregate = "COUNT(*)";
-            //preProcessing[typeof(FirstResultOperator)] =
-            //    (query, sql) => sql.Aggregate = "TOP 1 *";
-            //preProcessing[typeof(MaxResultOperator)] =
-            //    (query, sql) => UpdateAggregate(query, sql, "MAX");
-            //preProcessing[typeof(MinResultOperator)] =
-            //    (query, sql) => UpdateAggregate(query, sql, "MIN");
-            //preProcessing[typeof(SumResultOperator)] =
-            //    (query, sql) => UpdateAggregate(query, sql, "SUM");
-            //preProcessing[typeof(TakeResultOperator)] = 
-            //    Take;
+        /// <summary>
+        /// Executes a query with a collection result.
+        /// </summary>
+        public IEnumerable<T> ExecuteCollection<T>(QueryModel queryModel)
+        {
+            var connString = GetConnectionString();
+            var sql = GetSqlStatement(queryModel);
+            LogSqlStatement(connString, sql);
 
-            //var connString = GetConnectionString();
-            //var sqlVisitor = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
-            //sqlVisitor.VisitQueryModel(queryModel);
+            CheckForNotSupportedResultOperators(queryModel.ResultOperators);
 
-            //var resultOperator = queryModel.ResultOperators.FirstOrDefault();
-            //if (preProcessing.ContainsKey(resultOperator.GetType()))
-            //    preProcessing[resultOperator.GetType()](queryModel, sqlVisitor.SqlStatement);
+            var results = GetDataResults(connString, sql, queryModel);
 
-            //LogSqlStatement(sqlVisitor.SqlStatement, sqlVisitor.SqlStatement.Parameters);
+            var projector = GetSelectProjector<T>(results.FirstOrDefault(), queryModel);
 
-            //IEnumerable<T> results;
-
-            //using (var conn = new OleDbConnection(connString))
-            //using (var command = conn.CreateCommand())
+            //foreach (var resultOperator in queryModel.ResultOperators)
             //{
-            //    conn.Open();
-            //    command.CommandText = sqlVisitor.SqlStatement;
-            //    Console.WriteLine(command.CommandText);
-            //    command.Parameters.AddRange(sqlVisitor.SqlStatement.Parameters.ToArray());
-            //    var data = command.ExecuteReader();
-
-            //    var columns = GetColumnNames(data);
-            //    results = (queryModel.MainFromClause.ItemType == typeof(Row)) ?
-            //        GetRowResults<T>(data, columns, queryModel) :
-            //        GetCustomTypeResults<T>(data, columns, queryModel);
+            //    var databaseResult = new StreamedSequence(results, new StreamedSequenceInfo(typeof(T), Expression.Constant(1)));
+            //    var outputData = (StreamedSequence)resultOperator.ExecuteInMemory(databaseResult);
+            //    results =  outputData.GetTypedSequence<T>();
             //}
 
-            
-            //if (postProcessing.ContainsKey(resultOperator.GetType()))
-            //{
-            //    return postProcessing[resultOperator.GetType()][returnDefaultWhenEmpty](null, results);
-            //}
-            //else
-            //{
-            //    return (returnDefaultWhenEmpty) ? 
-            //        results.FirstOrDefault() : 
-            //        results.First();
-            //}
+            return results.Cast<T>(projector);
+        }
+
+        protected Func<object, T> GetSelectProjector<T>(object firstResult, QueryModel queryModel)
+        {
+            Func<object, T> projector = (result) => (T)Convert.ChangeType(result, typeof(T));
+            if ((firstResult.GetType() != typeof(T)) &&
+                (typeof(T) != typeof(int)) &&
+                (typeof(T) != typeof(long)))
+            {
+                var proj = ProjectorBuildingExpressionTreeVisitor.BuildProjector<T>(queryModel.SelectClause.Selector);
+                projector = (result) => proj(new ResultObjectMapping(queryModel.MainFromClause, result));
+            }
+            return projector;
+        }
+
+        protected SqlParts GetSqlStatement(QueryModel queryModel)
+        {
+            var sqlVisitor = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
+            sqlVisitor.VisitQueryModel(queryModel);
+            var sql = sqlVisitor.SqlStatement;
+
+            var resultOperators = queryModel.ResultOperators;
+            var sqlOperators = SqlResultOperators();
+            foreach (var result in resultOperators)
+                if (sqlOperators.ContainsKey(result.GetType()))
+                    sqlOperators[result.GetType()](sql, queryModel);
+
+            return sql;
         }
 
         private void Take(QueryModel query, SqlParts sql)
@@ -121,63 +116,76 @@ namespace LinqToExcel
 
         private string GetResultColumnName(QueryModel queryModel)
         {
-            //if (queryModel.SelectClause.Selector.NodeType == ExpressionType.MemberAccess)
-            //{
-                var mExp = queryModel.SelectClause.Selector as MemberExpression;
-                return (_columnMappings.ContainsKey(mExp.Member.Name)) ?
-                    _columnMappings[mExp.Member.Name] :
-                    mExp.Member.Name;
-            //}
+            var mExp = queryModel.SelectClause.Selector as MemberExpression;
+            return (_columnMappings.ContainsKey(mExp.Member.Name)) ?
+                _columnMappings[mExp.Member.Name] :
+                mExp.Member.Name;
+        }
+
+        protected Dictionary<Type, Action<SqlParts, QueryModel>> SqlResultOperators()
+        {
+            var dic = new Dictionary<Type, Action<SqlParts, QueryModel>>();
+            dic[typeof(AverageResultOperator)] =
+                (sql, query) => UpdateAggregate(query, sql, "AVG");
+            dic[typeof(CountResultOperator)] =
+                (sql, query) => sql.Aggregate = "COUNT(*)";
+            dic[typeof(LongCountResultOperator)] =
+                (sql, query) => sql.Aggregate = "COUNT(*)";
+            dic[typeof(FirstResultOperator)] =
+                (sql, query) => sql.Aggregate = "TOP 1 *";
+            dic[typeof(MaxResultOperator)] =
+                (sql, query) => UpdateAggregate(query, sql, "MAX");
+            dic[typeof(MinResultOperator)] =
+                (sql, query) => UpdateAggregate(query, sql, "MIN");
+            dic[typeof(SumResultOperator)] =
+                (sql, query) => UpdateAggregate(query, sql, "SUM");
+            dic[typeof(TakeResultOperator)] =
+                (sql, query) => Take(query, sql);
+            return dic;
+        }
+
+        protected void CheckForNotSupportedResultOperators(IEnumerable<ResultOperatorBase> resultOperators)
+        {
+            var notSupportedList = new List<Type>
+            {
+                typeof(ContainsResultOperator),
+            };
+
+            var notSupported = (from x in resultOperators
+                                where notSupportedList.Contains(x.GetType())
+                                select x.GetType().Name.Replace("ResultOperator", ""))
+                                .FirstOrDefault();
+
+            if (notSupported != null)
+                throw new NotSupportedException(
+                    string.Format("LinqToExcel does not provide support for the {0}() method", notSupported));
         }
 
         /// <summary>
-        /// Executes a query with a collection result.
+        /// Executes the sql query and returns the data results
         /// </summary>
-        public IEnumerable<T> ExecuteCollection<T>(QueryModel queryModel)
+        /// <typeparam name="T">Data type in the main from clause (queryModel.MainFromClause.ItemType)</typeparam>
+        /// <param name="queryModel">Linq query model</param>
+        protected IEnumerable<object> GetDataResults(string connectionString, SqlParts sql, QueryModel queryModel)
         {
-            var resultOperator = queryModel.ResultOperators.FirstOrDefault();
-            var postProcessing = new Dictionary<Type, Func<ResultOperatorBase, IEnumerable<T>, IEnumerable<T>>>();
-            postProcessing[typeof (SkipResultOperator)] =
-                (res, arg) => arg.Skip(res.Cast<SkipResultOperator>().GetConstantCount());
-
-            var connString = GetConnectionString();
-
-            var sql = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
-            sql.VisitQueryModel(queryModel);
-            LogSqlStatement(sql.SqlStatement, sql.SqlStatement.Parameters);
-
-            IEnumerable<T> results;
-
-            using (var conn = new OleDbConnection(connString))
+            IEnumerable<object> results;
+            using (var conn = new OleDbConnection(connectionString))
             using (var command = conn.CreateCommand())
             {
                 conn.Open();
-                command.CommandText = sql.SqlStatement;
-                Console.WriteLine(command.CommandText);
-                command.Parameters.AddRange(sql.SqlStatement.Parameters.ToArray());
+                command.CommandText = sql.ToString();
+                command.Parameters.AddRange(sql.Parameters.ToArray());
                 var data = command.ExecuteReader();
 
                 var columns = GetColumnNames(data);
-                results = (queryModel.MainFromClause.ItemType == typeof(Row)) ? 
-                    GetRowResults<T>(data, columns) : 
-                    GetTypeResults<T>(data, columns);
+                if (columns.Count() == 1 && columns.First() == "Expr1000")
+                    results = GetScalarResults(data);
+                else if (queryModel.MainFromClause.ItemType == typeof(Row))
+                    results = GetRowResults(data, columns);
+                else
+                    results = GetTypeResults(data, columns, queryModel);
             }
-
-            //if (resultOperator != null &&
-            //    postProcessing.ContainsKey(resultOperator.GetType()))
-            //{
-            //    results = postProcessing[resultOperator.GetType()](resultOperator, results);
-            //}
-
             return results;
-        }
-
-        private SqlParts GetSQLStatement(QueryModel queryModel)
-        {
-            var sql = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
-            sql.VisitQueryModel(queryModel);
-            LogSqlStatement(sql.SqlStatement, sql.SqlStatement.Parameters);
-            return sql.SqlStatement;
         }
 
         private string GetConnectionString()
@@ -207,13 +215,12 @@ namespace LinqToExcel
                     @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;""",
                     _fileName);
 
-            if (_log.IsDebugEnabled) _log.Debug("Connection String: " + connString);
             return connString;
         }
 
-        private IEnumerable<T> GetRowResults<T>(IDataReader data, IEnumerable<string> columns)
+        private IEnumerable<object> GetRowResults(IDataReader data, IEnumerable<string> columns)
         {
-            var results = new List<T>();
+            var results = new List<object>();
             var columnIndexMapping = new Dictionary<string, int>();
             for (var i = 0; i < columns.Count(); i++)
                 columnIndexMapping[columns.ElementAt(i)] = i;
@@ -225,16 +232,17 @@ namespace LinqToExcel
                     cells.Add(new Cell(data[i]));
                 results.CallMethod("Add", new Row(cells, columnIndexMapping));
             }
-            return results;
+            return results.AsEnumerable();
         }
 
-        private IEnumerable<T> GetTypeResults<T>(IDataReader data, IEnumerable<string> columns)
+        private IEnumerable<object> GetTypeResults(IDataReader data, IEnumerable<string> columns, QueryModel queryModel)
         {
-            var results = new List<T>();
-            var props = typeof(T).GetProperties();
+            var results = new List<object>();
+            var fromType = queryModel.MainFromClause.ItemType;
+            var props = fromType.GetProperties();
             while (data.Read())
             {
-                var result = Activator.CreateInstance<T>();
+                var result = Activator.CreateInstance(fromType);
                 foreach (var prop in props)
                 {
                     var columnName = (_columnMappings.ContainsKey(prop.Name)) ?
@@ -244,17 +252,24 @@ namespace LinqToExcel
                         result.SetProperty(prop.Name, Convert.ChangeType(data[columnName], prop.PropertyType));
                 }
                 results.Add(result);
-            }
-            return results;
+            } 
+            return results.AsEnumerable();
         }
 
-        private void LogSqlStatement(string sqlString, IEnumerable<OleDbParameter> sqlParameters)
+        private IEnumerable<object> GetScalarResults(IDataReader data)
+        {
+            data.Read();
+            return new List<object> { data[0] };
+        }
+
+        private void LogSqlStatement(string connectionString, SqlParts sqlParts)
         {
             if (_log.IsDebugEnabled)
             {
-                _log.Debug("SQL: " + sqlString);
-                for (var i = 0; i < sqlParameters.Count(); i++)
-                    _log.DebugFormat("Param[{0}]: {1}", i, sqlParameters.ElementAt(i).Value);
+                _log.DebugFormat("Connection String: {0}", connectionString);
+                _log.DebugFormat("SQL: {0}", sqlParts.ToString());
+                for (var i = 0; i < sqlParts.Parameters.Count(); i++)
+                    _log.DebugFormat("Param[{0}]: {1}", i, sqlParts.Parameters.ElementAt(i).Value);
             }
         }
 

@@ -33,5 +33,20 @@ namespace LinqToExcel
         {
             return (T)Convert.ChangeType(@object, typeof(T));
         }
+
+        public static IEnumerable<TResult> Cast<TResult>(this IEnumerable<object> list, Func<object, TResult> caster)
+        {
+            var results = new List<TResult>();
+            foreach (var item in list)
+                results.Add(caster(item));
+            return results;
+        }
+
+        public static IEnumerable<TResult> Cast<TResult>(this IEnumerable<object> list)
+        {
+            var func = new Func<object, TResult>((item) => 
+                (TResult)Convert.ChangeType(item, typeof(TResult)));
+            return list.Cast<TResult>(func);
+        }
     }
 }

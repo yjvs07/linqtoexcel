@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MbUnit.Framework;
+using System.Data.OleDb;
 
 namespace LinqToExcel.Tests
 {
@@ -47,9 +48,11 @@ namespace LinqToExcel.Tests
         [ExpectedException(typeof(NotSupportedException), "LinqToExcel does not provide support for the Group() method")]
         public void group()
         {
-            var companies = (from c in ExcelQueryFactory.Worksheet<Company>("")
-                             group c by c.CEO into g
-                             select g).ToList();
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+                            group c by c.CEO into g
+                            select g;
+            try { companies.ToList(); }
+            catch (OleDbException) { }
         }
 
         [Test]

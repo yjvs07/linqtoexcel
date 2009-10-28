@@ -323,5 +323,14 @@ namespace LinqToExcel.Tests
 
             Assert.AreEqual(4, threeEmployees.ToList().Count);
         }
+
+        [Test]
+        public void reverse()
+        {
+            var reverse = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+                           select c).Reverse().ToList();
+
+            Assert.AreEqual("Ontario Systems", reverse.First().Name);
+        }
     }
 }
