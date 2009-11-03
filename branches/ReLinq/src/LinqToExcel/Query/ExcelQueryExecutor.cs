@@ -15,6 +15,7 @@ using Remotion.Data.Linq.Clauses;
 using System.Collections;
 using Remotion.Data.Linq.Clauses.StreamedData;
 using LinqToExcel.Extensions;
+using log4net;
 
 namespace LinqToExcel.Query
 {
