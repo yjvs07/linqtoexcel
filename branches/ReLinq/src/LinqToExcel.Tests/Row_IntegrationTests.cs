@@ -25,7 +25,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void column_values()
         {
-            var firstCompany = (from c in ExcelQueryFactory.Worksheet(_excelFileName)
+            var firstCompany = (from c in ExcelQueryFactory.Worksheet(null, _excelFileName, null)
                                 select c).First();
 
             Assert.AreEqual("ACME", firstCompany["Name"].ToString());

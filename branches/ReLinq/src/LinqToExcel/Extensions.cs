@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
-namespace LinqToExcel
+namespace LinqToExcel.Extensions
 {
     public static class Extensions
     {

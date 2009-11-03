@@ -30,10 +30,5 @@ namespace LinqToExcel.Query
         {
             return _resultObjectsBySource.GetEnumerator();
         }
-
-        //IEnumerator IEnumerable.GetEnumerator()
-        //{
-        //    return GetEnumerator();
-        //}
     }
 }

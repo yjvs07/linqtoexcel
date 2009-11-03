@@ -1,10 +1,6 @@
 LinqToExcel Todo List
 
 - Test linq statements with multiple result operators
-
-- Finalize API
-
-- Refactor and cleanup the code base
   
 - Throw a descriptive SqlException when trying to query a column that doesn't exist
    - right now a generic OleDbException is being thrown

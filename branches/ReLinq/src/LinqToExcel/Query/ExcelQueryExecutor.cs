@@ -14,8 +14,9 @@ using Remotion.Data.Linq.Clauses.ResultOperators;
 using Remotion.Data.Linq.Clauses;
 using System.Collections;
 using Remotion.Data.Linq.Clauses.StreamedData;
+using LinqToExcel.Extensions;
 
-namespace LinqToExcel
+namespace LinqToExcel.Query
 {
     public class ExcelQueryExecutor : IQueryExecutor
     {
@@ -24,7 +25,7 @@ namespace LinqToExcel
         private readonly Dictionary<string, string> _columnMappings;
         private string _worksheetName;
 
-        public ExcelQueryExecutor(string fileName,  Dictionary<string, string> columnMappings, string worksheetName)
+        public ExcelQueryExecutor(string worksheetName, string fileName,  Dictionary<string, string> columnMappings)
         {
             _fileName = fileName;
             _columnMappings = columnMappings;
@@ -44,9 +45,17 @@ namespace LinqToExcel
         /// </summary>
         public T ExecuteSingle<T>(QueryModel queryModel, bool returnDefaultWhenEmpty)
         {
+            var results = ExecuteCollection<T>(queryModel);
+
+            foreach (var resultOperator in queryModel.ResultOperators)
+            {
+                if (resultOperator is LastResultOperator)
+                    return results.Last();
+            }
+
             return (returnDefaultWhenEmpty) ?
-                ExecuteCollection<T>(queryModel).FirstOrDefault() :
-                ExecuteCollection<T>(queryModel).First();
+                results.FirstOrDefault() :
+                results.First();
         }
 
         /// <summary>
@@ -58,20 +67,19 @@ namespace LinqToExcel
             var sql = GetSqlStatement(queryModel);
             LogSqlStatement(connString, sql);
 
-            CheckForNotSupportedResultOperators(queryModel.ResultOperators);
+            var objectResults = GetDataResults(connString, sql, queryModel);
+            var projector = GetSelectProjector<T>(objectResults.FirstOrDefault(), queryModel);
+            var returnResults = objectResults.Cast<T>(projector);
 
-            var results = GetDataResults(connString, sql, queryModel);
+            foreach (var resultOperator in queryModel.ResultOperators)
+            {
+                if (resultOperator is ReverseResultOperator)
+                    returnResults = returnResults.Reverse();
+                if (resultOperator is SkipResultOperator)
+                    returnResults = returnResults.Skip(resultOperator.Cast<SkipResultOperator>().GetConstantCount());
+            }
 
-            var projector = GetSelectProjector<T>(results.FirstOrDefault(), queryModel);
-
-            //foreach (var resultOperator in queryModel.ResultOperators)
-            //{
-            //    var databaseResult = new StreamedSequence(results, new StreamedSequenceInfo(typeof(T), Expression.Constant(1)));
-            //    var outputData = (StreamedSequence)resultOperator.ExecuteInMemory(databaseResult);
-            //    results =  outputData.GetTypedSequence<T>();
-            //}
-
-            return results.Cast<T>(projector);
+            return returnResults;
         }
 
         protected Func<object, T> GetSelectProjector<T>(object firstResult, QueryModel queryModel)
@@ -91,74 +99,7 @@ namespace LinqToExcel
         {
             var sqlVisitor = new SqlGeneratorQueryModelVisitor(_worksheetName, _columnMappings);
             sqlVisitor.VisitQueryModel(queryModel);
-            var sql = sqlVisitor.SqlStatement;
-
-            var resultOperators = queryModel.ResultOperators;
-            var sqlOperators = SqlResultOperators();
-            foreach (var result in resultOperators)
-                if (sqlOperators.ContainsKey(result.GetType()))
-                    sqlOperators[result.GetType()](sql, queryModel);
-
-            return sql;
-        }
-
-        private void Take(QueryModel query, SqlParts sql)
-        {
-            
-        }
-
-        private void UpdateAggregate(QueryModel queryModel, SqlParts sql, string aggregateName)
-        {
-            sql.Aggregate = string.Format("{0}({1})",
-                aggregateName,
-                GetResultColumnName(queryModel));
-        }
-
-        private string GetResultColumnName(QueryModel queryModel)
-        {
-            var mExp = queryModel.SelectClause.Selector as MemberExpression;
-            return (_columnMappings.ContainsKey(mExp.Member.Name)) ?
-                _columnMappings[mExp.Member.Name] :
-                mExp.Member.Name;
-        }
-
-        protected Dictionary<Type, Action<SqlParts, QueryModel>> SqlResultOperators()
-        {
-            var dic = new Dictionary<Type, Action<SqlParts, QueryModel>>();
-            dic[typeof(AverageResultOperator)] =
-                (sql, query) => UpdateAggregate(query, sql, "AVG");
-            dic[typeof(CountResultOperator)] =
-                (sql, query) => sql.Aggregate = "COUNT(*)";
-            dic[typeof(LongCountResultOperator)] =
-                (sql, query) => sql.Aggregate = "COUNT(*)";
-            dic[typeof(FirstResultOperator)] =
-                (sql, query) => sql.Aggregate = "TOP 1 *";
-            dic[typeof(MaxResultOperator)] =
-                (sql, query) => UpdateAggregate(query, sql, "MAX");
-            dic[typeof(MinResultOperator)] =
-                (sql, query) => UpdateAggregate(query, sql, "MIN");
-            dic[typeof(SumResultOperator)] =
-                (sql, query) => UpdateAggregate(query, sql, "SUM");
-            dic[typeof(TakeResultOperator)] =
-                (sql, query) => Take(query, sql);
-            return dic;
-        }
-
-        protected void CheckForNotSupportedResultOperators(IEnumerable<ResultOperatorBase> resultOperators)
-        {
-            var notSupportedList = new List<Type>
-            {
-                typeof(ContainsResultOperator),
-            };
-
-            var notSupported = (from x in resultOperators
-                                where notSupportedList.Contains(x.GetType())
-                                select x.GetType().Name.Replace("ResultOperator", ""))
-                                .FirstOrDefault();
-
-            if (notSupported != null)
-                throw new NotSupportedException(
-                    string.Format("LinqToExcel does not provide support for the {0}() method", notSupported));
+            return sqlVisitor.SqlStatement;
         }
 
         /// <summary>
@@ -195,24 +136,24 @@ namespace LinqToExcel
             if (_fileName.ToLower().EndsWith("xlsx") ||
                 _fileName.ToLower().EndsWith("xlsm"))
                 connString = string.Format(
-                    @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES""",
+                    @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES;IMEX=1""",
                     _fileName);
             else if (_fileName.ToLower().EndsWith("xlsb"))
             {
                 connString = string.Format(
-                    @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0;HDR=YES""",
+                    @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0;HDR=YES;IMEX=1""",
                     _fileName);
             }
             else if (_fileName.ToLower().EndsWith("csv"))
             {
                 _worksheetName = Path.GetFileName(_fileName);
                 connString = string.Format(
-                        @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""text;HDR=Yes;FMT=Delimited;""",
+                        @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""text;HDR=Yes;FMT=Delimited;IMEX=1""",
                         Path.GetDirectoryName(_fileName));
             }
             else
                 connString = string.Format(
-                    @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;""",
+                    @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;IMEX=1""",
                     _fileName);
 
             return connString;

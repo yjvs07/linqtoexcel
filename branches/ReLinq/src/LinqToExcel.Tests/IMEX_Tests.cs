@@ -10,9 +10,9 @@ namespace LinqToExcel.Tests
     [Author("Paul Yoder", "paulyoder@gmail.com")]
     [FixtureCategory("Integration")]
     [TestFixture]
-    public class ConfiguredWorksheetName_IntegrationTests
+    public class IMEX_Tests
     {
-        private string _excelFileName;
+        string _excelFileName;
 
         [TestFixtureSetUp]
         public void fs()
@@ -23,12 +23,15 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
-        public void data_is_read_from_correct_worksheet()
+        public void date_and_text_column_values_are_not_null()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>("More Companies", _excelFileName)
-                            select c;
+            var sheet = new ExcelQueryFactory();
+            sheet.FileName = _excelFileName;
 
-            Assert.AreEqual(3, companies.ToList().Count);
+            var names = (from x in sheet.Worksheet("IMEX Table")
+                         select x).ToList();
+            
+            Assert.AreEqual("Bye", names.Last()["Date"].ToString());
         }
     }
 }

@@ -28,7 +28,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void select_all()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             select c;
             
             //Using ToList() because using Count() first would change the sql 
@@ -39,7 +39,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_string_equals()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.CEO == "Paul Yoder"
                             select c;
 
@@ -49,7 +49,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_string_not_equal()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.CEO != "Bugs Bunny"
                             select c;
 
@@ -59,7 +59,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_int_equals()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.EmployeeCount == 25
                             select c;
 
@@ -69,7 +69,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_int_not_equal()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.EmployeeCount != 98
                             select c;
 
@@ -79,7 +79,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_int_greater_than()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.EmployeeCount > 98
                             select c;
 
@@ -89,7 +89,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_int_greater_than_or_equal()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.EmployeeCount >= 98
                             select c;
 
@@ -99,7 +99,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_int_less_than()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.EmployeeCount < 300
                             select c;
 
@@ -109,7 +109,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_int_less_than_or_equal()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.EmployeeCount <= 300
                             select c;
 
@@ -119,7 +119,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_datetime_equals()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.StartDate == new DateTime(2008, 10, 9)
                             select c;
 
@@ -129,7 +129,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void no_exception_on_property_not_used_in_where_clause_when_column_doesnt_exist()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<CompanyWithCity>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<CompanyWithCity>(null, _excelFileName, null)
                             select c;
 
             foreach (var company in companies)
@@ -144,7 +144,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void exception_on_property_used_in_where_clause_when_column_doesnt_exist()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<CompanyWithCity>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<CompanyWithCity>(null, _excelFileName, null)
                             where c.City == "Omaha"
                             select c;
 
@@ -154,7 +154,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void where_contains()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                             where c.CEO.Contains("Paul")
                             select c;
 
@@ -164,7 +164,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void selection_projection()
         {
-            var companyCities = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companyCities = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                 select new CompanyWithCity
                                 {
                                     CEO = c.CEO,
@@ -181,7 +181,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void selection_row_projection()
         {
-            var companyCities = from c in ExcelQueryFactory.Worksheet(_excelFileName)
+            var companyCities = from c in ExcelQueryFactory.Worksheet(null, _excelFileName, null)
                                 select new Company
                                 {
                                     CEO = c["CEO"],
@@ -199,7 +199,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void selection_row_to_anonymous_projection()
         {
-            var companyCities = from c in ExcelQueryFactory.Worksheet(_excelFileName)
+            var companyCities = from c in ExcelQueryFactory.Worksheet(null, _excelFileName, null)
                                 select new 
                                 {
                                     Employees = c["EmployeeCount"].Cast<double>(),
@@ -217,7 +217,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void first()
         {
-            var firstCompany = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var firstCompany = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                 select c).First();
 
             Assert.AreEqual("ACME", firstCompany.Name);
@@ -226,7 +226,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void count()
         {
-            var companyCount = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companyCount = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                 select c).Count();
 
             Assert.AreEqual(7, companyCount);
@@ -235,7 +235,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void long_count()
         {
-            var companyCount = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companyCount = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                 select c).LongCount();
 
             Assert.AreEqual(7, companyCount);
@@ -244,7 +244,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void sum()
         {
-            var companySum = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var companySum = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                               select c).Sum(x => x.EmployeeCount);
 
             Assert.AreEqual(30723, companySum);
@@ -253,7 +253,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void average()
         {
-            var averageEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var averageEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                     select c).Average(x => x.EmployeeCount);
 
             Assert.AreEqual(4389, averageEmployees);
@@ -262,7 +262,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void max()
         {
-            var maxEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var maxEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                 select c).Max(x => x.EmployeeCount);
 
             Assert.AreEqual(29839, maxEmployees);
@@ -271,7 +271,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void min()
         {
-            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var minEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                 select c).Min(x => x.EmployeeCount);
 
             Assert.AreEqual(1, minEmployees);
@@ -280,7 +280,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void oderby()
         {
-            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                orderby c.EmployeeCount ascending
                                select c;
 
@@ -290,7 +290,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void oderby_desc()
         {
-            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                orderby c.EmployeeCount descending
                                select c;
 
@@ -300,7 +300,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void last()
         {
-            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var minEmployees = from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                select c;
 
             Assert.AreEqual(455, minEmployees.Last().EmployeeCount);
@@ -309,7 +309,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void take()
         {
-            var threeEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var threeEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                   select c).Take(3);
 
             Assert.AreEqual(3, threeEmployees.ToList().Count);
@@ -318,7 +318,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void skip()
         {
-            var threeEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var threeEmployees = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                                   select c).Skip(3);
 
             Assert.AreEqual(4, threeEmployees.ToList().Count);
@@ -327,7 +327,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void reverse()
         {
-            var reverse = (from c in ExcelQueryFactory.Worksheet<Company>(_excelFileName)
+            var reverse = (from c in ExcelQueryFactory.Worksheet<Company>(null, _excelFileName, null)
                            select c).Reverse().ToList();
 
             Assert.AreEqual("Ontario Systems", reverse.First().Name);

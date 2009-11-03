@@ -27,13 +27,13 @@ namespace LinqToExcel.Tests
         [Test]
         public void xls_connection_string()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("spreadsheet.xls")
+            var companies = from c in ExcelQueryFactory.Worksheet(null, "spreadsheet.xls", null)
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expected = string.Format(
-                @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;""",
+                @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;IMEX=1""",
                 "spreadsheet.xls");
             Assert.AreEqual(expected, GetConnectionString());
         }
@@ -41,13 +41,13 @@ namespace LinqToExcel.Tests
         [Test]
         public void unknown_file_type_connection_string()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("spreadsheet.dlo")
+            var companies = from c in ExcelQueryFactory.Worksheet(null, "spreadsheet.dlo", null)
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expected = string.Format(
-                @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;""",
+                @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""Excel 8.0;HDR=YES;IMEX=1""",
                 "spreadsheet.dlo");
             Assert.AreEqual(expected, GetConnectionString());
         }
@@ -55,13 +55,13 @@ namespace LinqToExcel.Tests
         [Test]
         public void csv_connection_string()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet(@"C:\Desktop\spreadsheet.csv")
+            var companies = from c in ExcelQueryFactory.Worksheet(null, @"C:\Desktop\spreadsheet.csv", null)
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expected = string.Format(
-                @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""text;HDR=Yes;FMT=Delimited;""",
+                @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={0};Extended Properties=""text;HDR=Yes;FMT=Delimited;IMEX=1""",
                 @"C:\Desktop");
             Assert.AreEqual(expected, GetConnectionString());
         }
@@ -69,13 +69,13 @@ namespace LinqToExcel.Tests
         [Test]
         public void xlsx_connection_string()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("spreadsheet.xlsx")
+            var companies = from c in ExcelQueryFactory.Worksheet(null, "spreadsheet.xlsx", null)
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expected = string.Format(
-                @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES""",
+                @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES;IMEX=1""",
                 "spreadsheet.xlsx");
             Assert.AreEqual(expected, GetConnectionString());
         }
@@ -83,13 +83,13 @@ namespace LinqToExcel.Tests
         [Test]
         public void xlsm_connection_string()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("spreadsheet.xlsm")
+            var companies = from c in ExcelQueryFactory.Worksheet(null, "spreadsheet.xlsm", null)
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expected = string.Format(
-                @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES""",
+                @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0 Xml;HDR=YES;IMEX=1""",
                 "spreadsheet.xlsm");
             Assert.AreEqual(expected, GetConnectionString());
         }
@@ -97,50 +97,15 @@ namespace LinqToExcel.Tests
         [Test]
         public void xlsb_connection_string()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("spreadsheet.xlsb")
+            var companies = from c in ExcelQueryFactory.Worksheet(null, "spreadsheet.xlsb", null)
                             select c;
 
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expected = string.Format(
-                @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0;HDR=YES""",
+                @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=""Excel 12.0;HDR=YES;IMEX=1""",
                 "spreadsheet.xlsb");
             Assert.AreEqual(expected, GetConnectionString());
         }
-
-        //[Test]
-        //public void FileType_is_set_to_ExcelVersion_PreExcel2007_for_files_with_xls_extensions()
-        //{
-        //    var repo = new ExcelRepository<Company>("spreadsheet.xls");
-        //    Assert.AreEqual(ExcelVersion.PreExcel2007, repo.FileType);
-        //}
-
-        //[Test]
-        //public void FileType_is_set_to_ExcelVersion_PreExcel2007_for_files_with_XLS_extensions()
-        //{
-        //    var repo = new ExcelRepository<Company>("spreadsheet.XLS");
-        //    Assert.AreEqual(ExcelVersion.PreExcel2007, repo.FileType);
-        //}
-
-        //[Test]
-        //public void FileType_is_set_to_ExcelVersion_Csv_for_files_with_csv_extensions()
-        //{
-        //    var repo = new ExcelRepository<Company>("spreadsheet.csv");
-        //    Assert.AreEqual(ExcelVersion.Csv, repo.FileType);
-        //}
-
-        //[Test]
-        //public void FileType_is_set_to_ExcelVersion_Csv_for_files_with_CSV_extensions()
-        //{
-        //    var repo = new ExcelRepository<Company>("spreadsheet.CSV");
-        //    Assert.AreEqual(ExcelVersion.Csv, repo.FileType);
-        //}
-
-        //[Test]
-        //public void FileType_is_set_to_ExcelVersion_PreExcel2007_for_files_with_unrecognized_extensions()
-        //{
-        //    var repo = new ExcelRepository<Company>("spreadsheet.tdl");
-        //    Assert.AreEqual(ExcelVersion.PreExcel2007, repo.FileType);
-        //}
     }
 }

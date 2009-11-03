@@ -27,7 +27,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void no_where_clause()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>("")
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("", "", null)
                             select c;
 
             try { companies.GetEnumerator(); }
@@ -38,7 +38,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void column_name_used_in_where_clause()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("")
+            var companies = from c in ExcelQueryFactory.Worksheet("", "", null)
                             where c["City"] == "Omaha"
                             select c;
             
@@ -52,22 +52,22 @@ namespace LinqToExcel.Tests
         [Test]
         public void column_name_is_cast_in_where_clause()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("")
-                            where c["Modified"].Cast<DateTime>() < DateTime.Now
+            var companies = from c in ExcelQueryFactory.Worksheet("", "", null)
+                            where c["Modified"].Cast<DateTime>() < new DateTime(2009, 11, 2)
                             select c;
             
             try { companies.GetEnumerator(); }
             catch (OleDbException) { }
             var expectedSql = string.Format("SELECT * FROM [Sheet1$] WHERE ({0} < ?)", GetSQLFieldName("Modified"));
             Assert.AreEqual(expectedSql, GetSQLStatement());
-            Assert.AreEqual(DateTime.Now.ToShortDateString(), GetSQLParameters()[0]);
+            Assert.AreEqual("11/02/2009", GetSQLParameters()[0]);
         }
 
         [Test]
         [ExpectedArgumentException("Cannot use column indexes in where clause")]
         public void argument_thrown_when_column_indexes_used_in_where_clause()
         {
-            var companies = from c in ExcelQueryFactory.Worksheet("")
+            var companies = from c in ExcelQueryFactory.Worksheet("", "", null)
                             where c[0] == "Omaha"
                             select c;
             

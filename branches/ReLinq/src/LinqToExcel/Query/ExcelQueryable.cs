@@ -5,18 +5,18 @@ using System.Text;
 using Remotion.Data.Linq;
 using System.Linq.Expressions;
 
-namespace LinqToExcel
+namespace LinqToExcel.Query
 {
     public class ExcelQueryable<T> : QueryableBase<T>
     {
-        private static IQueryExecutor CreateExecutor(string fileName, Dictionary<string, string> columnMappings, string worksheetName)
+        private static IQueryExecutor CreateExecutor(string worksheetName, string fileName, Dictionary<string, string> columnMappings)
         {
-            return new ExcelQueryExecutor(fileName, columnMappings, worksheetName);
+            return new ExcelQueryExecutor(worksheetName, fileName, columnMappings);
         }
     
         // This constructor is called by our users, create a new IQueryExecutor.
-        public ExcelQueryable(string fileName, Dictionary<string, string> columnMappings, string worksheetName)
-            : base(CreateExecutor(fileName, columnMappings, worksheetName))
+        public ExcelQueryable(string worksheetName, string fileName, Dictionary<string, string> columnMappings)
+            : base(CreateExecutor(worksheetName, fileName, columnMappings))
         { }
 
         // This constructor is called indirectly by LINQ's query methods, just pass to base.

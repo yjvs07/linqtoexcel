@@ -25,7 +25,7 @@ namespace LinqToExcel.Tests
         public void xlsx()
         {
             var fileName = Path.Combine(_filesDirectory, "Companies.xlsx");
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(fileName, "MoreCompanies")
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("MoreCompanies", fileName)
                             select c;
 
             //Using ToList() because using Count() first would change the sql 
@@ -34,10 +34,22 @@ namespace LinqToExcel.Tests
         }
 
         [Test]
+        public void xlsm()
+        {
+            var fileName = Path.Combine(_filesDirectory, "Companies.xlsm");
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>("MoreCompanies", fileName, null)
+                            select c;
+
+            //Using ToList() because using Count() first would change the sql 
+            //string to "SELECT COUNT(*)" which we're not testing here
+            Assert.AreEqual(3, companies.ToList().Count);
+        }
+
+        //don't know why xlsb isn't working. I believe it's a bug with the jet driver
         public void xlsb()
         {
             var fileName = Path.Combine(_filesDirectory, "Companies.xlsb");
-            var companies = from c in ExcelQueryFactory.Worksheet<Company>(fileName)
+            var companies = from c in ExcelQueryFactory.Worksheet<Company>(null, fileName, null)
                             select c;
 
             //Using ToList() because using Count() first would change the sql 

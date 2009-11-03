@@ -31,7 +31,7 @@ namespace LinqToExcel.Tests
         [Test]
         public void Connection_string_data_source_is_directory_of_csv_file()
         {
-            var people = from p in ExcelQueryFactory.Worksheet(_fileName)
+            var people = from p in ExcelQueryFactory.Worksheet(null, _fileName, null)
                          select p;
 
             try { people.GetEnumerator(); }
@@ -44,20 +44,20 @@ namespace LinqToExcel.Tests
         [Test]
         public void Connection_string_extended_properties_have_csv_settings()
         {
-            var people = from p in ExcelQueryFactory.Worksheet(_fileName)
+            var people = from p in ExcelQueryFactory.Worksheet(null, _fileName, null)
                          select p;
 
             try { people.GetEnumerator(); }
             catch (OleDbException) { }
 
             var extendedProperties = GetExtendedProperties();
-            Assert.AreEqual("\"text;HDR=Yes;FMT=Delimited;\"", extendedProperties);
+            Assert.AreEqual("\"text;HDR=Yes;FMT=Delimited;IMEX=1\"", extendedProperties);
         }
 
         [Test]
         public void Table_name_is_csv_file_name()
         {
-            var people = from p in ExcelQueryFactory.Worksheet(_fileName)
+            var people = from p in ExcelQueryFactory.Worksheet(null, _fileName, null)
                          select p;
 
             try { people.GetEnumerator(); }

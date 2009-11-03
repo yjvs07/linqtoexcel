@@ -33,7 +33,6 @@ namespace LinqToExcel.Tests
         public void s()
         {
             _repo = new ExcelQueryFactory();
-            _repo.WorksheetName = _worksheetName;
             _repo.FileName = _excelFileName;
         }
 
@@ -45,7 +44,7 @@ namespace LinqToExcel.Tests
             _repo.AddMapping<Company>(x => x.EmployeeCount, "Number of People");
             _repo.AddMapping<Company>(x => x.StartDate, "Initiation Date");
 
-            var companies = from c in _repo.Worksheet<Company>()
+            var companies = from c in _repo.Worksheet<Company>(_worksheetName)
                             where c.Name == "Taylor University"
                             select c;
 
@@ -63,7 +62,7 @@ namespace LinqToExcel.Tests
             _repo.AddMapping<Company>(x => x.CEO, "Boss");
             _repo.AddMapping<Company>(x => x.StartDate, "Initiation Date");
 
-            var companies = from c in _repo.Worksheet<Company>()
+            var companies = from c in _repo.Worksheet<Company>(_worksheetName)
                             where c.Name == "Anderson University"
                             select c;
 
@@ -85,7 +84,7 @@ namespace LinqToExcel.Tests
         {
             _repo.AddMapping<Company>(x => x.CEO, "The Big Cheese");
 
-            var companies = from c in _repo.Worksheet<Company>()
+            var companies = from c in _repo.Worksheet<Company>(_worksheetName)
                             where c.CEO == "Bugs Bunny"
                             select c;
 
@@ -98,7 +97,7 @@ namespace LinqToExcel.Tests
             _loggedEvents.Clear();
             _repo.AddMapping<Company>(x => x.CEO, "The Big Cheese");
 
-            var companies = from c in _repo.Worksheet<Company>()
+            var companies = from c in _repo.Worksheet<Company>(_worksheetName)
                             select c;
 
             companies.GetEnumerator();
