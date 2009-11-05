@@ -1,5 +1,8 @@
-#summary One-sentence summary of this page.
+#summary This tutorial will help you implement the LinqToExcel library in your project
 #labels Featured
+
+= Getting Started with LinqToExcel =
+This tutorial will help you implement the LinqToExcel library in your project.
 
 == Download the LinqToExcel project zip file ==
 
