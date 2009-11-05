@@ -1,0 +1,43 @@
+#summary One-sentence summary of this page.
+#labels Featured
+
+== Download the LinqToExcel project zip file ==
+
+  * The latest file can be downloaded from this link: [http://code.google.com/p/linqtoexcel/downloads/list]
+  * Extract the contents of the downloaded zip file into a directory that can easily be referenced by your project
+    * Make sure you keep all the extracted files in the same directory since the LinqToExcel library depends on these other files being there
+
+== Reference LinqToExcel ==
+
+  * Add a reference to the _LinqToExcel.dll_ and _Remotion.Data.Linq.dll_ libraries to your project
+    * These files are contained in the extracted directory you created in the step above
+
+== Create a class ==
+
+  * Have the class property names match the spreadsheet column names
+
+=== Spreadsheet Example ===
+||*FirstName*||*LastName*||*BirthDate*||
+||Jane||Doe||10/16/1972||
+||John||Smith||4/15/1967||
+
+The first row of the spreadsheet must contain the column headers
+
+=== Class Example ===
+{{{
+public class Person
+{
+   public string FirstName { get; set; }
+   public string LastName { get; set; }
+   public DateTime BirthDate { get; set; }
+}
+}}}
+
+= Query the spreadsheet with LinqToExcel =
+
+{{{
+var repo = new LinqToExcel.ExcelQueryFactory();
+repo.FileName = "pathToExcelFile";
+var people = from p in repo.Worksheet<Person>()
+             select p;
+}}}
