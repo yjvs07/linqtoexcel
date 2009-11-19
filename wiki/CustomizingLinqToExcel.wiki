@@ -1,0 +1,23 @@
+#Customizing LinqToExcel
+
+== Property to Column Mapping ==
+If your class properties do not match the spreadsheet column names, then you can map the property names to the desired column names. The code below maps the _State_ property on the _Company_ class to the column named _Providence_ in the spreadsheet.
+{{{
+var repo = new ExcelQueryFactory("excelFileName");
+repo.AddMapping<Company>(x => x.State, "Providence");
+
+var indianaCompanies = from c in repo.Worksheet<Company>()
+                       c.State == "IN"
+                       select c;
+}}}
+
+
+== Worksheet Name ==
+By default, LinqToExcel retrieves data from the default worksheet named "Sheet1". To retrieve data from a worksheet with another name just pass the sheet name as an argument to the _Worksheet_ method. The code below retrieves data from the worksheet named "Last Quarter"
+{{{
+var repo = new ExcelQueryFactory("excelFileName");
+
+var companiesThatLostMoney = from c in repo.Worksheet<Company>("Last Quarter")
+                             where c.Earnings < 0
+                             select c;
+}}}
