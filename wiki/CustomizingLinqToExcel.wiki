@@ -1,5 +1,3 @@
-#Customizing LinqToExcel
-
 == Property to Column Mapping ==
 If your class properties do not match the spreadsheet column names, then you can map the property names to the desired column names. The code below maps the _State_ property on the _Company_ class to the column named _Providence_ in the spreadsheet.
 {{{
