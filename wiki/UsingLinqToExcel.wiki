@@ -6,6 +6,8 @@
   * *LinqToExcel.dll*
   * *Remotion.Data.Linq.dll*
 
+When using Linq to Excel in a .Net 4 app, make sure to change the target framework from the default client profile to the full .Net 4 framework. (Properties -> Application -> Target framework) The client profile cannot compile  .Net 3.5 dlls.
+
 <br />
 
 == Query a worksheet with a header row ==
