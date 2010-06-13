@@ -149,3 +149,10 @@ The *GetColumnNames()* method can be used to retrieve the list of column names i
 var excel = new ExcelQueryFactory("excelFileName");
 var columnNames = excel.GetColumnNames("worksheetName");
 }}}
+
+=== Strict Mapping ===
+Set the *StrictMapping* property to true to confirm all the columns in the worksheet map to a property on the class being used. A *StrictMappingException* is thrown when not all the columns map to a class property.
+{{{
+var excel = new ExcelQueryFactory("excelFileName");
+excel.StrictMapping = true;
+}}}
