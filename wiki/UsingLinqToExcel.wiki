@@ -104,7 +104,7 @@ var indianaCompanies = from c in excel.WorksheetRangeNoHeader("B3", "G10") //Sel
 == Query a specific worksheet by index ==
 A specific worksheet can be queried by its index in relation to the other worksheets in the spreadsheet. 
 
-The index order of the worksheets is based on their names alphatically, and not the order they appear in Excel. For example, if a spreadsheet contains 2 worksheets: "ten" and "eleven". Although "eleven" is the second worksheet in Excel, it is actually the first index.
+The worsheets index order is based on their names alphatically; not the order they appear in Excel. For example, if a spreadsheet contains 2 worksheets: "ten" and "eleven". Although "eleven" is the second worksheet in Excel, it is actually the first index.
 {{{
 var excel = new ExcelQueryFactory("excelFileName");
 var oldCompanies = from c in repo.Worksheet<Company>(1) //Queries the second worksheet in alphabetical order
@@ -134,4 +134,18 @@ var csv = new ExcelQueryFactory("csvFileName");
 var indianaCompanies = from c in csv.Worksheet<Company>()
                        c.State == "IN"
                        select c;
+}}}
+
+=== Query Worksheet Names ===
+The *GetWorksheetNames()* method can be used to retrieve the list of worksheet names in a spreadsheet.
+{{{
+var excel = new ExcelQueryFactory("excelFileName");
+var worksheetNames = excel.GetWorksheetNames();
+}}}
+
+=== Query Column Names ===
+The *GetColumnNames()* method can be used to retrieve the list of column names in a worksheet.
+{{{
+var excel = new ExcelQueryFactory("excelFileName");
+var columnNames = excel.GetColumnNames("worksheetName");
 }}}
