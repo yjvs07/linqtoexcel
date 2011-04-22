@@ -2,7 +2,10 @@
 #labels Featured
 
 == Adding LinqToExcel to your project ==
-==== Add References ====
+==== NuGet ====
+You can use NuGet to quickly add LinqToExcel to your project. Just search for 'linqtoexcel' and install the package.
+
+==== Manually Add References ====
 [http://code.google.com/p/linqtoexcel/downloads/list Download] the latest files and add the following references in your project
   * *LinqToExcel.dll*
   * *Remotion.Data.Linq.dll*
