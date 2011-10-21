@@ -13,9 +13,6 @@ You can use NuGet to quickly add LinqToExcel to your project. Just search for 'l
 ==== Target x86 Platform ====
 Linq to Excel requires any projects referencing it to be built against the x86 platform target. See [http://blog.yodersolutions.com/2008/11/microsoftjetoledb-and-x64-machines/ this link] for detailed information on setting the platform target to x86. Note this only applies to compiling the project on x64 computers.
 
-==== .Net 4 ====
-When using Linq to Excel in a .Net 4 app, make sure to change the target framework from the default client profile to the full .Net 4 framework. (Properties -> Application -> Target framework) The client profile cannot compile .Net 3.5 dlls.
-
 <br />
 
 == Query a worksheet with a header row ==
